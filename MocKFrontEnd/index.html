@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Register</title>
+    <script>
+        async function sendRequest(endpoint) {
+            console.log("Heree...");
+            const user_name = document.getElementById("name").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            const response = await fetch(`http://localhost:5000/user/${endpoint}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ user_name, email, password })
+            });
+            console.log("sent...");
+
+            const result = await response.json();
+            alert(result.message);
+        }
+    </script>
+</head>
+<body>
+    <h2>User Authentication</h2>
+    <input type="name" id="name" placeholder="Enter user name" required>
+    <input type="email" id="email" placeholder="Enter email" required>
+    <input type="password" id="password" placeholder="Enter password" required>
+    <button onclick="sendRequest('register')">Register</button>
+    <button onclick="sendRequest('login')">Login</button>
+</body>
+</html>
