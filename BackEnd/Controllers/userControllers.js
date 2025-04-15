@@ -9,8 +9,14 @@ export const login = async (req, res, next) => {
 
     const user = await User.findOne({ email: email });
     if (!user) {
-        // Username not found
+        // email not found
         return res.status(401).json({ message: 'Invalid user' });
+    }
+
+    if (user.googleId && !user.password) {
+        return res.status(403).json({
+            message: "You signed up with Google. Use Google login instead!",
+        });
     }
 
     const isMatch = await user.comparePassword(password);

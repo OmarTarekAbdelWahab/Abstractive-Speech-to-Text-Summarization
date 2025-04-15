@@ -3,7 +3,8 @@ import express, { json } from 'express';
 import cors from 'cors';
 import connectDB from './DataBase/DB.js'
 import userRoutes from './routes/uesr_api.js';
-
+import passport from './auth/passport.js';
+import authRoutes from './auth/authRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
 
 dotenv.config();
@@ -18,6 +19,10 @@ app.use(cors());
 app.use(json());
 
 // app.use(tokenVerifier);
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use("/auth", authRoutes);
 
 app.use('/user', userRoutes);
 

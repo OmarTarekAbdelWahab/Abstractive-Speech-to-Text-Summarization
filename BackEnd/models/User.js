@@ -6,6 +6,10 @@ import jwt from "jsonwebtoken";
 
 const UserSchema = new mongoose.Schema(
     {
+        googleId: { 
+            type: String, 
+            unique: true 
+        },
         user_name: {
             type: String,
             required: true,
@@ -19,7 +23,6 @@ const UserSchema = new mongoose.Schema(
         },
         password: {
             type: String,
-            required: true,
             minlength: [8, "Password must be at least 8 characters long"],
             maxlength: [128, "Password must be less than 128 characters long"],
             validate: {
@@ -44,7 +47,7 @@ const UserSchema = new mongoose.Schema(
 // Hash password before saving to database
 UserSchema.pre("save", async function (next) {
     const user = this;
-    if (user.isModified("password") || user.isNew) {
+    if (this.password && (user.isModified("password") || user.isNew)) {
         try {
             const salt = await bcrypt.genSalt(10);
             const hash = await bcrypt.hash(user.password, salt);
@@ -60,6 +63,7 @@ UserSchema.pre("save", async function (next) {
 
 // Compare password with hashed password in database
 UserSchema.methods.comparePassword = function (password) {
+    if (!this.password) return false; // Prevent checking if no password exists
     return bcrypt.compare(password, this.password);
 };
 
