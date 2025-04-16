@@ -6,7 +6,7 @@ import { LoginCredentials, AuthResponse, User } from './models';
 export const loginService = {
   async login(credentials: LoginCredentials): Promise<User> {
     try {
-      const response = await api.post<AuthResponse>('/login', credentials);
+      const response = await api.post<AuthResponse>('/user/login', credentials);
       const { token, user } = response.data;
       
       tokenService.setToken(token);
