@@ -1,27 +1,45 @@
 import express from "express";
-import passport from "passport";
-import jwt from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
+import User from "../models/User.js";
 
 const router = express.Router();
 
-router.get("/google",
-    passport.authenticate("google", { scope: ["profile", "email"] })
-);
+const client = new OAuth2Client({
+    clientId: process.env.GOOGLE_CLIENT_ID,
+});
 
-router.get("/google/callback",
-    passport.authenticate("google", { session: false }),
-    async (req, res) => {
-        if (!req.user) {
-            return res.status(401).json({ message: "Authentication failed" });
+router.post("/google", async (req, res) => {
+    const { credential } = req.body;
+
+    try {
+        const ticket = await client.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+
+        const payload = ticket.getPayload();
+        console.log("Payload:", payload);
+
+        let user = await User.findOne({ googleId: payload.sub });
+        
+        if (!user) {
+            user = new User({
+                googleId: payload.sub,
+                user_name: payload.name,
+                email: payload.email,
+            });
+            await user.save();
         }
 
-        const token = await req.user.generateAuthToken();
+        user.incrementLoginCount();
 
-        res.cookie("token", token, { httpOnly: true, secure: false, sameSite: "strict" });
-        // res.json({ message: "Login successful", token: token });
-        res.redirect("http://localhost:3000");
-        // return res;
+        const retToken = await user.generateAuthToken();
+
+        res.cookie("token", retToken, { httpOnly: true, secure: false, sameSite: "strict" });
+        res.status(200).json({ message: "Login successful", user: { name: user.user_name}});
+    } catch (error) {
+        console.error("Error verifying token:", error);
+        res.status(401).json({ message: "Authentication failed" });
     }
-);
-
+});
 export default router;

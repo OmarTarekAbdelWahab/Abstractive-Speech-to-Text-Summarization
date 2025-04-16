@@ -4,13 +4,13 @@ export const login = async (req, res, next) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-        return res.status(401).json({ message: 'Invalid username or password' });
+        return res.status(401).json({ message: 'Missing username or password' });
     }
 
     const user = await User.findOne({ email: email });
     if (!user) {
         // email not found
-        return res.status(401).json({ message: 'Invalid user' });
+        return res.status(401).json({ message: 'Please enter a valid email!' });
     }
 
     if (user.googleId && !user.password) {
@@ -22,7 +22,7 @@ export const login = async (req, res, next) => {
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
         // Incorrect password
-        return res.status(401).json({ message: 'Invalid username or password' });
+        return res.status(401).json({ message: 'Please enter a valid password!' });
     }
 
     const token = await user.generateAuthToken();
@@ -37,7 +37,7 @@ export const login = async (req, res, next) => {
 
 export const register = async (req, res, next) => {
     try {
-        const { user_name, email, password } = req.body;
+        const { username:user_name, email, password } = req.body;
 
         // Check if user already exists
         const existingUser = await User.findOne({ email });

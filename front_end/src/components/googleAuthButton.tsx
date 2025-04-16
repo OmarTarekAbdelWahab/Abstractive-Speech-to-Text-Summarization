@@ -1,52 +1,45 @@
 // src/components/GoogleAuthButton.tsx
-import { useGoogleLogin } from "@react-oauth/google";
-import { useState } from "react";
-import { authService } from "../services/googleLogin";
+import { GoogleLogin } from "@react-oauth/google";
 
 interface GoogleAuthButtonProps {
   onSuccess: () => void;
+  onError: () => void;
   text: string;
 }
 
 const GoogleAuthButton = (props: GoogleAuthButtonProps) => {
-  const [loading, setLoading] = useState(false);
 
-  const handleGoogleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      try {
-        setLoading(true);
-        console.log("Google Access Token:", tokenResponse.access_token);
-        const response = await authService.googleLogin(
-          tokenResponse.access_token
-        );
+  const handleGoogleLogin = async (credentialResponse: any) => {
+    try {
+      const response = await fetch("http://localhost:5000/auth/google", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ credential: credentialResponse.credential }),
+      });
 
-        // Store auth data
-        localStorage.setItem("token", response.token);
-        localStorage.setItem("user", JSON.stringify(response.user));
-
-        props.onSuccess?.();
-      } catch (err) {
-        console.error("Auth error:", err);
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error("Failed to authenticate");
       }
-    },
-  });
+
+      const data = await response.json();
+      console.log("Server Response:", data);
+      props.onSuccess();
+    } catch (error) {
+      console.error("Error during authentication:", error);
+      props.onError();
+    }
+  }
 
   return (
-    <button
-      type="button"
-      onClick={() => handleGoogleLogin()}
-      disabled={loading}
-      className="border border-gray-500 border-opacity-50 my-2 flex items-center justify-center w-full bg-white hover:bg-gray-200 text-gray-700 font-medium py-2 rounded-lg transition duration-200"
-    >
-      <img
-        src="https://www.svgrepo.com/show/303108/google-icon-logo.svg"
-        alt="Google"
-        className="w-6 h-6 mr-2"
-      />
-      {props.text}
-    </button>
+    <GoogleLogin
+      onSuccess={handleGoogleLogin}
+      onError={() => {
+        console.error("Google Login Failed");
+        props.onError();
+      }}
+    />
   );
 };
 
