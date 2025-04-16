@@ -21,7 +21,7 @@ const Login = () => {
     }
     
     setErrors(newErrors);
-    return Object.keys(errors).length === 0;
+    return Object.keys(newErrors).length === 0;
   }
 
   const handleLogin = async (e: React.FormEvent) => {
