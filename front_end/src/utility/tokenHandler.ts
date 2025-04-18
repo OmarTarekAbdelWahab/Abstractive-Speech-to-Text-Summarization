@@ -1,4 +1,4 @@
-import { User } from './models';
+import { User } from '../models/models';
 
 const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'user_data';

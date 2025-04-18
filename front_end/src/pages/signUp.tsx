@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import NavBar from "../components/navBar";
 import GoogleAuthButton from "../components/googleAuthButton";
 import { useState } from "react";
+import api from "../utility/api";
 
 const SignUp = () => {
   const navigator = useNavigate();
@@ -15,7 +16,7 @@ const SignUp = () => {
   const [errors, setErrors] = useState<{[key: string]: string}>({});
 
   const validateForm = () => {
-    const newErrors: {[key:string ]: string} = {};
+    const newErrors: Record<string, string> = {};
     if (!username) {
       newErrors.username = "Username is required";
     }
@@ -33,7 +34,7 @@ const SignUp = () => {
     return Object.keys(newErrors).length === 0;
   }
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -43,18 +44,28 @@ const SignUp = () => {
 
     console.log("Signup clicked", username, email, password, confirmPassword);
 
-    const response = await fetch("http://localhost:5000/user/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ 
+    try {
+      const response = await api.post("user/register", {
         username, email, password
-      }),
-    });
+      });
+      const data = response.data;
+      console.log("Server Response:", data);
+      navigator("/dashboard");
+    } catch (error: any) {
+      console.log("Hereeeee");
+      const data = error.response.data;
+      console.log("Error response", data);
+      
+      const newErrors: Record<string, string> = {};
+      for (const field in data.errors) {
+        console.log("here at ", field)
+        newErrors[field] = data.errors[field].message;
+      }
 
-    const data = await response.json();
-    console.log("Server Response:", data);
+      console.log(newErrors)
+      setErrors(newErrors);
+      return;
+    }
   }
   return (
     <>
@@ -65,7 +76,7 @@ const SignUp = () => {
             Sign Up
           </h2>
           <form
-            onSubmit={handleLogin}
+            onSubmit={handleSignup}
           >
             <FormField
               type="text"

@@ -1,75 +1,93 @@
+import { BadRequestError } from '../Errors/errors.js';
 import User from '../models/User.js';
 
 export const login = async (req, res, next) => {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-        return res.status(401).json({ message: 'Missing username or password' });
-    }
-
-    const user = await User.findOne({ email: email });
-    if (!user) {
-        // email not found
-        return res.status(401).json({ message: 'Please enter a valid email!' });
-    }
-
-    if (user.googleId && !user.password) {
-        return res.status(403).json({
-            message: "You signed up with Google. Use Google login instead!",
-        });
-    }
-
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-        // Incorrect password
-        return res.status(401).json({ message: 'Please enter a valid password!' });
-    }
-
-    const token = await user.generateAuthToken();
-    
-    // Increments the login count for the user
-    await user.incrementLoginCount();
-
-    res.cookie('token', token, { httpOnly: true, sameSite: 'strict', secure: false }); // secure true to allow https only
-
-    return res.json({ message: "Login Success", status: 1 })
-};
-
-export const register = async (req, res, next) => {
     try {
-        const { username:user_name, email, password } = req.body;
+        const { email, password } = req.body;
 
-        // Check if user already exists
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json({ message: "Email already in use" });
+        if (!email || !password) {
+            throw new BadRequestError("Email and password are required!");
         }
-
-        // Create a new user
-        const newUser = new User({ user_name, email, password });
-        await newUser.save();
-
-        // Generate authentication token
-        const token = newUser.generateAuthToken();
-
-        // Set authentication cookie
-        res.cookie("token", token, { httpOnly: true, sameSite: "strict", secure: false });
-
-        return res.status(201).json({ message: "Registration successful", status: 1, user: newUser });
+    
+        const user = await User.findOne({ email: email });
+        if (!user) {
+            // email not found
+            throw new BadRequestError("Please enter a valid email!");
+        }
+    
+        if (user.googleId && !user.password) {
+            throw new ForbiddenError("You signed up with Google. Use Google login instead!");
+        }
+    
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch) {
+            throw new BadRequestError("Please enter a valid password!");
+        }
+    
+        const token = user.generateAuthToken();
+        
+        // Increments the login count for the user
+        user.incrementLoginCount();
+    
+        
+        return res.json({ 
+            message: "Login Success", 
+            status: 1, 
+            token, 
+            user: {
+                username: user.username,
+                email: user.email,
+                loginCount: user.loginCount,
+                createdAt: user.createdAt,
+            }
+        });
     } catch (error) {
         next(error); // Pass error to Express error handler
     }
 };
 
-export const getData = async (req, res, next) => {
+export const register = async (req, res, next) => {
+    try {
+        const { username, email, password } = req.body;
+        
+        if (!email || !password || !username) {
+            throw new BadRequestError("Email, password, and user name are required!");
+        }
+
+        // Create a new user
+        const newUser = new User({ username, email, password });
+        await newUser.save();
+
+        // Generate authentication token
+        const token = newUser.generateAuthToken();
+
+        newUser.incrementLoginCount();
+
+        // Set authentication cookie
+
+        return res.status(201).json({ 
+            message: "Registration successful", 
+            status: 1, token, 
+            user: {
+                username: newUser.username,
+                email: newUser.email,
+                loginCount: newUser.loginCount,
+                createdAt: newUser.createdAt,
+            }
+        });
+    } catch (error) {
+        next(error); // Pass error to Express error handler
+    }
+};
+
+export const getUserData = async (req, res, next) => {
     try {
         console.log("here at /data..");
-        const { email } = req.body;
-        const user = await User.findOne({ email: email});
-
-        if (!user) {
-            // Username not found
-            return res.status(401).json({ message: 'Invalid user' });
+        const user = {
+            username: req.user.username,
+            email: req.user.email,
+            loginCount: req.user.loginCount,
+            createdAt: req.user.createdAt,
         }
         
         return res.status(200).json({ status: 1, user });

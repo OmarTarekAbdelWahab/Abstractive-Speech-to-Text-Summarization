@@ -1,6 +1,7 @@
 import express from "express";
 import { OAuth2Client } from "google-auth-library";
 import User from "../models/User.js";
+import { UnauthorizedError } from "../Errors/errors.js";
 
 const router = express.Router();
 
@@ -8,12 +9,12 @@ const client = new OAuth2Client({
     clientId: process.env.GOOGLE_CLIENT_ID,
 });
 
-router.post("/google", async (req, res) => {
-    const { credential } = req.body;
+router.post("/google", async (req, res, next) => {
+    const { credential: idToken } = req.body;
 
     try {
         const ticket = await client.verifyIdToken({
-            idToken: credential,
+            idToken,
             audience: process.env.GOOGLE_CLIENT_ID,
         });
 
@@ -25,7 +26,7 @@ router.post("/google", async (req, res) => {
         if (!user) {
             user = new User({
                 googleId: payload.sub,
-                user_name: payload.name,
+                username: payload.name,
                 email: payload.email,
             });
             await user.save();
@@ -33,13 +34,22 @@ router.post("/google", async (req, res) => {
 
         user.incrementLoginCount();
 
-        const retToken = await user.generateAuthToken();
+        const token = user.generateAuthToken();
 
-        res.cookie("token", retToken, { httpOnly: true, secure: false, sameSite: "strict" });
-        res.status(200).json({ message: "Login successful", user: { name: user.user_name}});
+        res.status(200).json({ 
+            message: "Login successful", 
+            status: 1,
+            token,
+            user: { 
+                name: user.username, 
+                email: user.email, 
+                loginCount: user.loginCount,
+                createdAt: user.createdAt,
+            }, 
+        });
     } catch (error) {
         console.error("Error verifying token:", error);
-        res.status(401).json({ message: "Authentication failed" });
+        next(new UnauthorizedError("Authentication failed"));
     }
 });
 export default router;

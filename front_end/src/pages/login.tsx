@@ -4,6 +4,7 @@ import NavBar from "../components/navBar";
 import GoogleAuthButton from "../components/googleAuthButton";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import api from "../utility/api";
 
 const Login = () => {
   const navigator = useNavigate();
@@ -32,19 +33,22 @@ const Login = () => {
       return;
     }
     console.log("Login clicked", email, password);
-
-    const response = await fetch("http://localhost:5000/user/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ 
+    try {
+      const response = await api.post("/user/login", {
         email, password
-      }),
-    });
-
-    const data = await response.json();
-    console.log("Server Response:", data);
+      });
+      const data = await response.data;
+      console.log("Login response", data);
+      if (response.statusText !== "OK") {
+        
+        return;
+      }
+      navigator("/dashboard");
+    } catch (error: any) {
+      console.log("Login error", error.message, ": ", error.response.data.message);
+      setErrors({ password: error.response.data.message });
+      return;
+    }
   }
 
   return (

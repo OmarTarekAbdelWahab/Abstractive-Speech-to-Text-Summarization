@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { tokenService } from './tokenService';
+  import axios from 'axios';
+import { tokenService } from './tokenHandler';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/',
@@ -11,6 +11,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = tokenService.getToken();
+    console.log("Token in request interceptor:", token);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -23,10 +24,17 @@ api.interceptors.request.use(
 
 // Add response interceptor to handle token expiration
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log("return", response);
+    if (response.data.token) {
+      tokenService.setToken(response.data.token);
+    }
+    return response;
+  },
   (error) => {
     if (error.response?.status === 401) {
       tokenService.clearAll();
+      alert('Your session has expired. Please log in again.');
       window.location.href = '/login';
     }
     return Promise.reject(error);
