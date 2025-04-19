@@ -1,7 +1,7 @@
 // src/services/authService.ts
-import api from './api';
-import { tokenService } from './tokenService';
-import { LoginCredentials, AuthResponse, User } from './models';
+import api from '../utility/api';
+import { tokenService } from '../utility/tokenHandler';
+import { LoginCredentials, AuthResponse, User } from '../models/models';
 
 export const loginService = {
   async login(credentials: LoginCredentials): Promise<User> {
