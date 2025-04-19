@@ -2,15 +2,15 @@ import mongoose from "mongoose";
 import validator from "validator";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { UnauthorizedError } from "../Errors/errors.js";
 
 
 const UserSchema = new mongoose.Schema(
     {
         googleId: { 
             type: String, 
-            unique: true 
         },
-        user_name: {
+        username: {
             type: String,
             required: true,
         },
@@ -75,16 +75,16 @@ UserSchema.methods.incrementLoginCount = function () {
 
 // Generate a JWT token
 UserSchema.methods.generateAuthToken = function () {
-    const token = jwt.sign({ _id: this._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+    const token = jwt.sign({ _id: this._id }, process.env.JWT_SECRET, { expiresIn: "30d" });
     return token;
 };
 
-UserSchema.statics.findByToken = function (token) {
+UserSchema.statics.findByToken = async function (token) {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        return this.findOne({ _id: decoded._id });
+        return await this.findOne({ _id: decoded._id });
     } catch (err) {
-        throw new Error(`Error verifying token: ${err.message}`);
+        throw new UnauthorizedError(`Error verifying token: ${err.message}`);
     }
 };
 
