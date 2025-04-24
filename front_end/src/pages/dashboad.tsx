@@ -6,6 +6,7 @@ interface ChatMessage {
   id: number;
   text: string;
   timestamp: Date;
+  sender: "user" | "bot";
 }
 
 function Dashboard() {
