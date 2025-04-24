@@ -81,7 +81,7 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
     const base64Audio = reader.result?.toString().split(",")[1]; // remove data URL prefix
     if (!base64Audio) return;
    try{
-    const response = await fetch("https://4c19-34-145-100-101.ngrok-free.app/upload", {
+    const response = await fetch("https://58d8-34-55-218-130.ngrok-free.app/upload", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
