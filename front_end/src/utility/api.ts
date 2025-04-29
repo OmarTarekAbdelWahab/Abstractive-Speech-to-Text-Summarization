@@ -2,7 +2,7 @@
 import { tokenService } from './tokenHandler';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -10,6 +10,11 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
+    const publicEndpoints = ['/user/login', '/user/register'];
+
+    if(publicEndpoints.some((endpoint) => config.url?.includes(endpoint))) {
+      return config;
+    }
     const token = tokenService.getToken();
     console.log("Token in request interceptor:", token);
     if (token) {
