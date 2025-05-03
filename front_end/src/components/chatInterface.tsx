@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { FaMicrophone, FaLink, FaUpload, FaPaperPlane } from "react-icons/fa";
+import AudioRecorder from "./AudioRecorder";
 
 interface ChatMessage {
   id: number;
@@ -15,9 +16,11 @@ interface ChatInterfaceProps {
 
 function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
   const [input, setInput] = useState("");
-  const [postResponse, setPostResponse] = useState("");
+  // const [postResponse, setPostResponse] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [showRecordPopup, setShowRecordPopup] = useState(false);
+  
 
   useEffect(() => {
     if (file) {
@@ -112,9 +115,14 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
   reader.readAsDataURL(file);
   };
 
-  const handleAudioRecord = () => {
+  const handleAudioRecord = (recordedFile: Blob) => {
     // Implement audio recording logic
-    console.log("Recording audio...");
+    setShowRecordPopup(false);
+    console.log("Recorded audio file:", recordedFile);
+    // todo: send recordedFile to backend ( bakalemak ya abdo )
+    // const fileFromBlob = new File([recordedFile], "recorded_audio.wav", { type: "audio/wav" });
+    // console.log("Converted Blob to File:", fileFromBlob);
+    // setFile(fileFromBlob);
   };
 
   const handleLinkInsert = () => {
@@ -151,11 +159,27 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
             rows={1}
           />
           <button
-            onClick={handleAudioRecord}
+            onClick={() => setShowRecordPopup(true)}
             className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700"
           >
+            
             <FaMicrophone />
           </button>
+          {showRecordPopup && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl shadow-xl p-6 relative w-[50%] h-[50%] max-w-xl">
+          <button
+            onClick={() => setShowRecordPopup(false)}
+            className="absolute top-2 right-2 text-gray-600 hover:text-red-600 text-2xl font-bold"
+            aria-label="Close"
+          >
+            &times;
+          </button>
+          <AudioRecorder onSave={handleAudioRecord} />
+        </div>
+      </div>
+      
+      )}
           <button
             onClick={handleFileUpload}
             className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700"
