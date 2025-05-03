@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { FaMicrophone, FaLink, FaUpload, FaPaperPlane } from "react-icons/fa";
 import { modelService } from "../services/modelService";
 
@@ -19,12 +19,6 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
 
-  useEffect(() => {
-    if (file) {
-      sendAudioToBackend();
-    }
-  }, [file]);
-
   const handleSend = async () => {
     if (input.trim()) {
       const newMessage: ChatMessage = {
@@ -36,16 +30,42 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
       setMessages((prevMessages) => [...prevMessages, newMessage]);
       setInput("");
 
-      modelService.sendTextOnly(newMessage.text).then((response) => {
-        console.log("Text response:", response);
-        const botMessage: ChatMessage = {
-          id: Date.now() + 1,
-          text: response || "No response from model.",
-          timestamp: new Date(),
-          sender: "bot",
-        };
-        setMessages((prevMessages) => [...prevMessages, botMessage]);
-      });
+      // if file is not selected, send text message only
+      if (!file) {
+        modelService.sendTextOnly(newMessage.text).then((response) => {
+          console.log("Text response:", response);
+          const botMessage: ChatMessage = {
+            id: Date.now() + 1,
+            text: response || "No response from model.",
+            timestamp: new Date(),
+            sender: "bot",
+          };
+          setMessages((prevMessages) => [...prevMessages, botMessage]);
+        });
+        return;
+      }
+
+      // if file is selected, send audio with text
+      const reader = new FileReader();
+
+      reader.onloadend = async () => {
+        const base64Audio = reader.result?.toString().split(",")[1]; // remove data URL prefix
+        if (!base64Audio) return;
+
+        modelService
+          .sendAudioWithText(file.name, file.type, base64Audio, newMessage.text)
+          .then((response) => {
+            const botMessage: ChatMessage = {
+              id: Date.now() + 1,
+              text: response || "No response from model.",
+              timestamp: new Date(),
+              sender: "bot",
+            };
+            setMessages((prevMessages) => [...prevMessages, botMessage]);
+          });
+      };
+
+      reader.readAsDataURL(file);
     }
   };
 
@@ -58,30 +78,6 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
 
   const handleFileUpload = () => {
     fileInputRef.current?.click();
-  };
-
-  const sendAudioToBackend = async () => {
-    if (!file) return;
-    const reader = new FileReader();
-
-    reader.onloadend = async () => {
-      const base64Audio = reader.result?.toString().split(",")[1]; // remove data URL prefix
-      if (!base64Audio) return;
-
-      modelService
-        .sendAudioWithText(file.name, file.type, base64Audio)
-        .then((response) => {
-          const botMessage: ChatMessage = {
-            id: Date.now() + 1,
-            text: response || "No response from model.",
-            timestamp: new Date(),
-            sender: "bot",
-          };
-          setMessages((prevMessages) => [...prevMessages, botMessage]);
-        });
-    };
-
-    reader.readAsDataURL(file);
   };
 
   const handleAudioRecord = () => {

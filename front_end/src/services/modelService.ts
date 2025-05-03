@@ -14,12 +14,13 @@ export const modelService = {
     }
   },
 
-  async sendAudioWithText(filename: string, content_type: string, audio_data: string): Promise<string> {
+  async sendAudioWithText(filename: string, content_type: string, audio_data: string, prompt: string): Promise<string> {
     try {
       const response = await fastAPI.post<any>('/upload', JSON.stringify({
             filename: filename,
             content_type: content_type,
             audio_data: audio_data,
+            prompt: prompt
           }));
       const data = response.data as { response: string };
       console.log("Response from model:", data.response);
