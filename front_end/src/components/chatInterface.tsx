@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { FaMicrophone, FaLink, FaUpload, FaPaperPlane } from "react-icons/fa";
+import { modelService } from "../services/modelService";
 
 interface ChatMessage {
   id: number;
@@ -15,11 +16,8 @@ interface ChatInterfaceProps {
 
 function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
   const [input, setInput] = useState("");
-  const [postResponse, setPostResponse] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
-
-  const fast_api = import.meta.env.VITE_FAST_API_URL;
 
   useEffect(() => {
     if (file) {
@@ -38,29 +36,16 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
       setMessages((prevMessages) => [...prevMessages, newMessage]);
       setInput("");
 
-      try {
-        const response = await fetch(`${fast_api}/model`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "ngrok-skip-browser-warning": "true",
-          },
-          body: JSON.stringify({ prompt: newMessage.text }),
-        });
-
-        const data = await response.json();
-        console.log("Text response:", data);
-
+      modelService.sendTextOnly(newMessage.text).then((response) => {
+        console.log("Text response:", response);
         const botMessage: ChatMessage = {
           id: Date.now() + 1,
-          text: data.response || "No response from model.",
+          text: response || "No response from model.",
           timestamp: new Date(),
           sender: "bot",
         };
         setMessages((prevMessages) => [...prevMessages, botMessage]);
-      } catch (error) {
-        console.error("Failed to send text:", error);
-      }
+      });
     }
   };
 
@@ -82,33 +67,18 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
     reader.onloadend = async () => {
       const base64Audio = reader.result?.toString().split(",")[1]; // remove data URL prefix
       if (!base64Audio) return;
-      try {
-        const response = await fetch(`${fast_api}/upload`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "ngrok-skip-browser-warning": "true",
-          },
-          body: JSON.stringify({
-            filename: file.name,
-            content_type: file.type,
-            audio_data: base64Audio,
-          }),
+
+      modelService
+        .sendAudioWithText(file.name, file.type, base64Audio)
+        .then((response) => {
+          const botMessage: ChatMessage = {
+            id: Date.now() + 1,
+            text: response || "No response from model.",
+            timestamp: new Date(),
+            sender: "bot",
+          };
+          setMessages((prevMessages) => [...prevMessages, botMessage]);
         });
-
-        const data = await response.json();
-        console.log("Text response:", data);
-
-        const botMessage: ChatMessage = {
-          id: Date.now() + 1,
-          text: data.response || "No response from model.",
-          timestamp: new Date(),
-          sender: "bot",
-        };
-        setMessages((prevMessages) => [...prevMessages, botMessage]);
-      } catch (error) {
-        console.error("Failed to send text:", error);
-      }
     };
 
     reader.readAsDataURL(file);
