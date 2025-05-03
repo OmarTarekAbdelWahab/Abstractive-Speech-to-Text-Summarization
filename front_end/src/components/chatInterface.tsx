@@ -19,6 +19,8 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
 
+  const fast_api = import.meta.env.VITE_FAST_API_URL;
+
   useEffect(() => {
     if (file) {
       sendAudioToBackend();
@@ -37,7 +39,7 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
       setInput("");
 
       try {
-        const response = await fetch("https://86d4-34-30-163-221.ngrok-free.app/model", {
+        const response = await fetch(`${fast_api}/model`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -77,24 +79,24 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
     if (!file) return;
     const reader = new FileReader();
 
-  reader.onloadend = async () => {
-    const base64Audio = reader.result?.toString().split(",")[1]; // remove data URL prefix
-    if (!base64Audio) return;
-   try{
-    const response = await fetch("https://58d8-34-55-218-130.ngrok-free.app/upload", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "ngrok-skip-browser-warning": "true",
-      },
-      body: JSON.stringify({
-        filename: file.name,
-        content_type: file.type,
-        audio_data: base64Audio,
-      }),
-    });
+    reader.onloadend = async () => {
+      const base64Audio = reader.result?.toString().split(",")[1]; // remove data URL prefix
+      if (!base64Audio) return;
+      try {
+        const response = await fetch(`${fast_api}/upload`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "true",
+          },
+          body: JSON.stringify({
+            filename: file.name,
+            content_type: file.type,
+            audio_data: base64Audio,
+          }),
+        });
 
-    const data = await response.json();
+        const data = await response.json();
         console.log("Text response:", data);
 
         const botMessage: ChatMessage = {
@@ -107,9 +109,9 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
       } catch (error) {
         console.error("Failed to send text:", error);
       }
-  };
+    };
 
-  reader.readAsDataURL(file);
+    reader.readAsDataURL(file);
   };
 
   const handleAudioRecord = () => {
