@@ -17,7 +17,8 @@ interface ChatInterfaceProps {
 function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
   const [input, setInput] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [file, setFile] = useState<File | null>(null);
+  const [audioURL, setAudioURL] = useState<string | null>(null);
+  const [audioFile, setAudioFile] = useState<File | null>(null);
 
   const handleSend = async () => {
     if (input.trim()) {
@@ -31,7 +32,7 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
       setInput("");
 
       // if file is not selected, send text message only
-      if (!file) {
+      if (!audioFile) {
         modelService.sendTextOnly(newMessage.text).then((response) => {
           console.log("Text response:", response);
           const botMessage: ChatMessage = {
@@ -53,7 +54,12 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
         if (!base64Audio) return;
 
         modelService
-          .sendAudioWithText(file.name, file.type, base64Audio, newMessage.text)
+          .sendAudioWithText(
+            audioFile.name,
+            audioFile.type,
+            base64Audio,
+            newMessage.text
+          )
           .then((response) => {
             const botMessage: ChatMessage = {
               id: Date.now() + 1,
@@ -65,7 +71,7 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
           });
       };
 
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(audioFile);
     }
   };
 
@@ -78,6 +84,22 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
 
   const handleFileUpload = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith("audio/")) {
+      setAudioFile(file);
+      setAudioURL(URL.createObjectURL(file));
+    }
+  };
+
+  const handleDelete = () => {
+    setAudioFile(null);
+    setAudioURL(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""; // Clear file input
+    }
   };
 
   const handleAudioRecord = () => {
@@ -108,6 +130,22 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
           </div>
         ))}
       </div>
+      {/* Display audio if selected */}
+      {audioFile ? (
+        <div className="p-1 border shadow-md">
+          <div className="flex items-center justify-center gap-10">
+            <audio controls src={audioURL || ""} />
+            <button
+              onClick={handleDelete}
+              className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+            >
+              Delete Audio
+            </button>
+          </div>
+        </div>
+      ) : (
+        ""
+      )}
       <div className="p-4 border-t">
         <div className="flex items-center space-x-2">
           <textarea
@@ -148,13 +186,7 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
           ref={fileInputRef}
           className="hidden"
           accept="audio/*"
-          onChange={(e) => {
-            const selectedFile = e.target.files?.[0];
-            if (selectedFile) {
-              console.log("File selected:", selectedFile);
-              setFile(selectedFile); // triggers useEffect to upload
-            }
-          }}
+          onChange={handleFileChange}
         />
       </div>
     </div>
