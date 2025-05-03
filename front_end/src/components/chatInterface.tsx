@@ -101,18 +101,18 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
     setAudioFile(null);
     setAudioURL(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = ""; // Clear file input
+      fileInputRef.current.value = "";
     }
   };
 
   const handleAudioRecord = (recordedFile: Blob) => {
     // Implement audio recording logic
+    const fileFromBlob = new File([recordedFile], "recorded_audio.wav", {
+      type: "audio/wav",
+    });
+    setAudioFile(fileFromBlob);
+    setAudioURL(URL.createObjectURL(fileFromBlob));
     setShowRecordPopup(false);
-    console.log("Recorded audio file:", recordedFile);
-    // todo: send recordedFile to backend ( bakalemak ya abdo )
-    // const fileFromBlob = new File([recordedFile], "recorded_audio.wav", { type: "audio/wav" });
-    // console.log("Converted Blob to File:", fileFromBlob);
-    // setFile(fileFromBlob);
   };
 
   const handleLinkInsert = () => {
