@@ -1,6 +1,8 @@
 import { useState, useRef } from "react";
 import { FaMicrophone, FaLink, FaUpload, FaPaperPlane } from "react-icons/fa";
 import { modelService } from "../services/modelService";
+import AudioRecorder from "./AudioRecorder";
+import ToolTip from "./ToolTip";
 
 interface ChatMessage {
   id: number;
@@ -19,6 +21,7 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [audioURL, setAudioURL] = useState<string | null>(null);
   const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [showRecordPopup, setShowRecordPopup] = useState(false);
 
   const handleSend = async () => {
     if (input.trim()) {
@@ -102,9 +105,14 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
     }
   };
 
-  const handleAudioRecord = () => {
+  const handleAudioRecord = (recordedFile: Blob) => {
     // Implement audio recording logic
-    console.log("Recording audio...");
+    setShowRecordPopup(false);
+    console.log("Recorded audio file:", recordedFile);
+    // todo: send recordedFile to backend ( bakalemak ya abdo )
+    // const fileFromBlob = new File([recordedFile], "recorded_audio.wav", { type: "audio/wav" });
+    // console.log("Converted Blob to File:", fileFromBlob);
+    // setFile(fileFromBlob);
   };
 
   const handleLinkInsert = () => {
@@ -156,30 +164,52 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
             placeholder="Type a message..."
             rows={1}
           />
-          <button
-            onClick={handleAudioRecord}
-            className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700"
-          >
-            <FaMicrophone />
-          </button>
-          <button
-            onClick={handleFileUpload}
-            className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700"
-          >
-            <FaUpload />
-          </button>
-          <button
-            onClick={handleLinkInsert}
-            className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700"
-          >
-            <FaLink />
-          </button>
-          <button
-            onClick={handleSend}
-            className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700"
-          >
-            <FaPaperPlane />
-          </button>
+          <ToolTip text="record">
+            <button
+              onClick={() => setShowRecordPopup(true)}
+              className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700"
+            >
+              <FaMicrophone />
+            </button>
+          </ToolTip>
+          {showRecordPopup && (
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+              <div className="bg-white rounded-xl shadow-xl p-6 relative w-[50%] h-[50%] max-w-xl">
+                <button
+                  onClick={() => setShowRecordPopup(false)}
+                  className="absolute top-2 right-2 text-gray-600 hover:text-red-600 text-2xl font-bold"
+                  aria-label="Close"
+                >
+                  &times;
+                </button>
+                <AudioRecorder onSave={handleAudioRecord} />
+              </div>
+            </div>
+          )}
+          <ToolTip text="upload">
+            <button
+              onClick={handleFileUpload}
+              className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700"
+            >
+              <FaUpload />
+            </button>
+          </ToolTip>
+          <ToolTip text="insert link">
+            <button
+              onClick={handleLinkInsert}
+              className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700"
+            >
+              <FaLink />
+            </button>
+          </ToolTip>
+          <ToolTip text="send">
+            <button
+              onClick={handleSend}
+              className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700"
+            >
+              <FaPaperPlane />
+            </button>
+          </ToolTip>
         </div>
         <input
           type="file"
