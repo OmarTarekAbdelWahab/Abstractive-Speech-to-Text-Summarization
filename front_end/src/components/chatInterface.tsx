@@ -140,7 +140,7 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
       </div>
       {/* Display audio if selected */}
       {audioFile ? (
-        <div className="p-1 border shadow-md">
+        <div className="p-2 shadow-md">
           <div className="flex items-center justify-center gap-10">
             <audio controls src={audioURL || ""} />
             <button
