@@ -3,18 +3,18 @@ import { useRef, useState } from "react";
 const mimeType = "audio/webm";
 
 interface AudioRecorderProps {
-    onSave: (audioBlob: Blob) => void;
+    onSave: (audioBlob: Blob, audioUrl: string) => void;
 }
 
 const AudioRecorder = ({ onSave }: AudioRecorderProps) => {
     const [recordingStatus, setRecordingStatus] = useState(false);
     const mediaRecorderRef = useRef<MediaRecorder>(null);
     const audioChunks = useRef<Blob[]>([]);
-    const [audioUrl, setAudioUrl] = useState<string | null>(null);
+    const [audioUrl, setAudioUrl] = useState<string>("");
     const [finalAudioBlob, setFinalAudioBlob] = useState<Blob | null>(null);
 
     const startRecording = async () => {
-        setAudioUrl(null);
+        setAudioUrl("");
         setFinalAudioBlob(null);
 
         if (!("MediaRecorder" in window)) {
@@ -69,7 +69,7 @@ const AudioRecorder = ({ onSave }: AudioRecorderProps) => {
             {finalAudioBlob && (
                 <button
                     className="absolute bottom-2 right-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-3 py-1 rounded-lg shadow transition duration-200"
-                    onClick={() => onSave(finalAudioBlob)}
+                    onClick={() => onSave(finalAudioBlob, audioUrl)}
                 >
                     Save Audio
                 </button>

@@ -24,58 +24,59 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
   const [showRecordPopup, setShowRecordPopup] = useState(false);
 
   const handleSend = async () => {
-    if (input.trim()) {
-      const newMessage: ChatMessage = {
-        id: Date.now(),
-        text: input,
-        timestamp: new Date(),
-        sender: "user",
-      };
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
-      setInput("");
+    const text = input.trim();
+    if (!text) return;
+    setInput("");
+    
+    const newMessage: ChatMessage = {
+      id: Date.now(),
+      text,
+      timestamp: new Date(),
+      sender: "user",
+    };
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
 
-      // if file is not selected, send text message only
-      if (!audioFile) {
-        modelService.sendTextOnly(newMessage.text).then((response) => {
-          console.log("Text response:", response);
+    // if file is not selected, send text message only
+    if (!audioFile) {
+      modelService.sendTextOnly(newMessage.text).then((response) => {
+        console.log("Text response:", response);
+        const botMessage: ChatMessage = {
+          id: Date.now() + 1,
+          text: response,
+          timestamp: new Date(),
+          sender: "bot",
+        };
+        setMessages((prevMessages) => [...prevMessages, botMessage]);
+      });
+      return;
+    }
+
+    // if file is selected, send audio with text
+    const reader = new FileReader();
+
+    reader.onloadend = async () => {
+      const base64Audio = reader.result?.toString().split(",")[1]; // remove data URL prefix
+      if (!base64Audio) return;
+
+      modelService
+        .sendAudioWithText(
+          audioFile.name,
+          audioFile.type,
+          base64Audio,
+          newMessage.text
+        )
+        .then((response) => {
           const botMessage: ChatMessage = {
             id: Date.now() + 1,
-            text: response || "No response from model.",
+            text: response,
             timestamp: new Date(),
             sender: "bot",
           };
           setMessages((prevMessages) => [...prevMessages, botMessage]);
         });
-        return;
-      }
+    };
 
-      // if file is selected, send audio with text
-      const reader = new FileReader();
-
-      reader.onloadend = async () => {
-        const base64Audio = reader.result?.toString().split(",")[1]; // remove data URL prefix
-        if (!base64Audio) return;
-
-        modelService
-          .sendAudioWithText(
-            audioFile.name,
-            audioFile.type,
-            base64Audio,
-            newMessage.text
-          )
-          .then((response) => {
-            const botMessage: ChatMessage = {
-              id: Date.now() + 1,
-              text: response || "No response from model.",
-              timestamp: new Date(),
-              sender: "bot",
-            };
-            setMessages((prevMessages) => [...prevMessages, botMessage]);
-          });
-      };
-
-      reader.readAsDataURL(audioFile);
-    }
+    reader.readAsDataURL(audioFile);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -97,7 +98,7 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
     }
   };
 
-  const handleDelete = () => {
+  const handleDeleteAudioFile = () => {
     setAudioFile(null);
     setAudioURL(null);
     if (fileInputRef.current) {
@@ -105,13 +106,13 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
     }
   };
 
-  const handleAudioRecord = (recordedFile: Blob) => {
+  const handleAudioRecord = (recordedFile: Blob, recordedUrl: string) => {
     // Implement audio recording logic
     const fileFromBlob = new File([recordedFile], "recorded_audio.wav", {
       type: "audio/wav",
     });
     setAudioFile(fileFromBlob);
-    setAudioURL(URL.createObjectURL(fileFromBlob));
+    setAudioURL(recordedUrl);
     setShowRecordPopup(false);
   };
 
@@ -139,12 +140,12 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
         ))}
       </div>
       {/* Display audio if selected */}
-      {audioFile ? (
+      {audioURL ? (
         <div className="p-2 shadow-md">
           <div className="flex items-center justify-center gap-10">
             <audio controls src={audioURL || ""} />
             <button
-              onClick={handleDelete}
+              onClick={handleDeleteAudioFile}
               className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
             >
               Delete Audio
@@ -159,7 +160,7 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyPress}
             className="flex-1 p-2 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-600"
             placeholder="Type a message..."
             rows={1}
