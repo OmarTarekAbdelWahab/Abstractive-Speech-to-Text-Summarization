@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { FaMicrophone, FaLink, FaUpload, FaPaperPlane } from "react-icons/fa";
+import { modelService } from "../services/modelService";
 import AudioRecorder from "./AudioRecorder";
 import ToolTip from "./ToolTip";
 
@@ -17,53 +18,65 @@ interface ChatInterfaceProps {
 
 function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
   const [input, setInput] = useState("");
-  // const [postResponse, setPostResponse] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [file, setFile] = useState<File | null>(null);
+  const [audioURL, setAudioURL] = useState<string | null>(null);
+  const [audioFile, setAudioFile] = useState<File | null>(null);
   const [showRecordPopup, setShowRecordPopup] = useState(false);
-  
-
-  useEffect(() => {
-    if (file) {
-      sendAudioToBackend();
-    }
-  }, [file]);
 
   const handleSend = async () => {
-    if (input.trim()) {
-      const newMessage: ChatMessage = {
-        id: Date.now(),
-        text: input,
-        timestamp: new Date(),
-        sender: "user",
-      };
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
-      setInput("");
+    const text = input.trim();
+    if (!text) return;
+    setInput("");
+    
+    const newMessage: ChatMessage = {
+      id: Date.now(),
+      text,
+      timestamp: new Date(),
+      sender: "user",
+    };
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
 
-      try {
-        const response = await fetch("https://86d4-34-30-163-221.ngrok-free.app/model", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "ngrok-skip-browser-warning": "true",
-          },
-          body: JSON.stringify({ prompt: newMessage.text }),
-        });
-
-        const data = await response.json();
-        console.log("Text response:", data);
-
+    // if file is not selected, send text message only
+    if (!audioFile) {
+      modelService.sendTextOnly(newMessage.text).then((response) => {
+        console.log("Text response:", response);
         const botMessage: ChatMessage = {
           id: Date.now() + 1,
-          text: data.response || "No response from model.",
+          text: response,
           timestamp: new Date(),
           sender: "bot",
         };
         setMessages((prevMessages) => [...prevMessages, botMessage]);
-      } catch (error) {
-        console.error("Failed to send text:", error);
-      }
+      });
+      return;
     }
+
+    // if file is selected, send audio with text
+    const reader = new FileReader();
+
+    reader.onloadend = async () => {
+      const base64Audio = reader.result?.toString().split(",")[1]; // remove data URL prefix
+      if (!base64Audio) return;
+
+      modelService
+        .sendAudioWithText(
+          audioFile.name,
+          audioFile.type,
+          base64Audio,
+          newMessage.text
+        )
+        .then((response) => {
+          const botMessage: ChatMessage = {
+            id: Date.now() + 1,
+            text: response,
+            timestamp: new Date(),
+            sender: "bot",
+          };
+          setMessages((prevMessages) => [...prevMessages, botMessage]);
+        });
+    };
+
+    reader.readAsDataURL(audioFile);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -77,53 +90,30 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
     fileInputRef.current?.click();
   };
 
-  const sendAudioToBackend = async () => {
-    if (!file) return;
-    const reader = new FileReader();
-
-  reader.onloadend = async () => {
-    const base64Audio = reader.result?.toString().split(",")[1]; // remove data URL prefix
-    if (!base64Audio) return;
-   try{
-    const response = await fetch("https://58d8-34-55-218-130.ngrok-free.app/upload", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "ngrok-skip-browser-warning": "true",
-      },
-      body: JSON.stringify({
-        filename: file.name,
-        content_type: file.type,
-        audio_data: base64Audio,
-      }),
-    });
-
-    const data = await response.json();
-        console.log("Text response:", data);
-
-        const botMessage: ChatMessage = {
-          id: Date.now() + 1,
-          text: data.response || "No response from model.",
-          timestamp: new Date(),
-          sender: "bot",
-        };
-        setMessages((prevMessages) => [...prevMessages, botMessage]);
-      } catch (error) {
-        console.error("Failed to send text:", error);
-      }
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith("audio/")) {
+      setAudioFile(file);
+      setAudioURL(URL.createObjectURL(file));
+    }
   };
 
-  reader.readAsDataURL(file);
+  const handleDeleteAudioFile = () => {
+    setAudioFile(null);
+    setAudioURL(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
-  const handleAudioRecord = (recordedFile: Blob) => {
+  const handleAudioRecord = (recordedFile: Blob, recordedUrl: string) => {
     // Implement audio recording logic
+    const fileFromBlob = new File([recordedFile], "recorded_audio.wav", {
+      type: "audio/wav",
+    });
+    setAudioFile(fileFromBlob);
+    setAudioURL(recordedUrl);
     setShowRecordPopup(false);
-    console.log("Recorded audio file:", recordedFile);
-    // todo: send recordedFile to backend ( bakalemak ya abdo )
-    // const fileFromBlob = new File([recordedFile], "recorded_audio.wav", { type: "audio/wav" });
-    // console.log("Converted Blob to File:", fileFromBlob);
-    // setFile(fileFromBlob);
   };
 
   const handleLinkInsert = () => {
@@ -149,12 +139,28 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
           </div>
         ))}
       </div>
+      {/* Display audio if selected */}
+      {audioURL ? (
+        <div className="p-2 shadow-md">
+          <div className="flex items-center justify-center gap-10">
+            <audio controls src={audioURL || ""} />
+            <button
+              onClick={handleDeleteAudioFile}
+              className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+            >
+              Delete Audio
+            </button>
+          </div>
+        </div>
+      ) : (
+        ""
+      )}
       <div className="p-4 border-t">
         <div className="flex items-center space-x-2">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyPress}
             className="flex-1 p-2 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-600"
             placeholder="Type a message..."
             rows={1}
@@ -164,7 +170,6 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
               onClick={() => setShowRecordPopup(true)}
               className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700"
             >
-              
               <FaMicrophone />
             </button>
           </ToolTip>
@@ -212,13 +217,7 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
           ref={fileInputRef}
           className="hidden"
           accept="audio/*"
-          onChange={(e) => {
-            const selectedFile = e.target.files?.[0];
-            if (selectedFile) {
-              console.log("File selected:", selectedFile);
-              setFile(selectedFile); // triggers useEffect to upload
-            }
-          }}
+          onChange={handleFileChange}
         />
       </div>
     </div>
