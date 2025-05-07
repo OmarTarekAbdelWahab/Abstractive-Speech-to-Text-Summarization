@@ -22,3 +22,10 @@ export interface GoogleUser {
   name: string;
   sub: string;
 }
+
+export interface ChatMessage {
+  id: number;
+  text: string;
+  timestamp: Date;
+  sender: "user" | "bot";
+}

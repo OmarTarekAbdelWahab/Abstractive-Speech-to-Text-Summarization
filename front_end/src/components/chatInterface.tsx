@@ -1,15 +1,12 @@
 import { useState, useRef } from "react";
-import { FaMicrophone, FaLink, FaUpload, FaPaperPlane } from "react-icons/fa";
+import { FaMicrophone, FaUpload, FaPaperPlane, FaPen } from "react-icons/fa";
+
 import { modelService } from "../services/modelService";
 import AudioRecorder from "./AudioRecorder";
 import ToolTip from "./ToolTip";
-
-interface ChatMessage {
-  id: number;
-  text: string;
-  timestamp: Date;
-  sender: "user" | "bot";
-}
+import { ChatMessage } from "../models/models";
+import UserMessage from "./userMessage";
+import BotMessage from "./botMessage";
 
 interface ChatInterfaceProps {
   messages: ChatMessage[];
@@ -27,7 +24,7 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
     const text = input.trim();
     if (!text) return;
     setInput("");
-    
+
     const newMessage: ChatMessage = {
       id: Date.now(),
       text,
@@ -101,6 +98,7 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
   const handleDeleteAudioFile = () => {
     setAudioFile(null);
     setAudioURL(null);
+    setInput("");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -126,18 +124,15 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
   return (
     <div className="flex-1 flex flex-col">
       <div className="flex-1 p-4 overflow-y-auto flex flex-col space-y-2">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`p-3 rounded-lg shadow w-3/4 ${
-              message.sender === "bot"
-                ? "bg-blue-100 text-blue-900 self-start"
-                : "bg-white text-gray-800 self-end"
-            }`}
-          >
-            <p>{message.text}</p>
-          </div>
-        ))}
+        {messages.map((message) =>
+          message.sender === "user" ? (
+            // User message
+            <UserMessage message={message}></UserMessage>
+          ) : (
+            // Bot message
+            <BotMessage message={message}></BotMessage>
+          )
+        )}
       </div>
       {/* Display audio if selected */}
       {audioURL ? (
@@ -156,17 +151,20 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
         ""
       )}
       <div className="p-4 border-t">
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-center space-x-2">
           <textarea
             value={input}
+            hidden={!audioURL}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyPress}
             className="flex-1 p-2 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-600"
             placeholder="Type a message..."
             rows={1}
+            disabled={!audioURL}
           />
           <ToolTip text="record">
             <button
+              hidden={!!audioURL}
               onClick={() => setShowRecordPopup(true)}
               className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700"
             >
@@ -189,22 +187,16 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
           )}
           <ToolTip text="upload">
             <button
+              hidden={!!audioURL}
               onClick={handleFileUpload}
               className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700"
             >
               <FaUpload />
             </button>
           </ToolTip>
-          <ToolTip text="insert link">
-            <button
-              onClick={handleLinkInsert}
-              className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700"
-            >
-              <FaLink />
-            </button>
-          </ToolTip>
           <ToolTip text="send">
             <button
+              hidden={!audioURL}
               onClick={handleSend}
               className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700"
             >
