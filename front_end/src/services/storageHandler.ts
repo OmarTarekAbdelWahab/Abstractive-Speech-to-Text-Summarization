@@ -3,33 +3,33 @@ import { User } from '../models/models';
 const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'user_data';
 
-export const tokenService = {
-  getToken(): string | null {
+export const storageHandler = {
+  getTokenFromStorage(): string | null {
     return localStorage.getItem(TOKEN_KEY);
   },
 
-  setToken(token: string): void {
+  setTokenInStorage(token: string): void {
     localStorage.setItem(TOKEN_KEY, token);
   },
 
-  removeToken(): void {
+  removeTokenFromStorage(): void {
     localStorage.removeItem(TOKEN_KEY);
   },
 
-  getUser(): User | null {
+  getUserFromStorage(): User | null {
     const userStr = localStorage.getItem(USER_KEY);
     return userStr ? JSON.parse(userStr) : null;
   },
 
-  setUser(user: User): void {
+  setUserInStorage(user: User): void {
     localStorage.setItem(USER_KEY, JSON.stringify(user));
   },
 
-  removeUser(): void {
+  removeUserFromStorage(): void {
     localStorage.removeItem(USER_KEY);
   },
 
-  clearAll(): void {
+  clearAllFromStorage(): void {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
   }

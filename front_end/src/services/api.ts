@@ -1,5 +1,5 @@
   import axios from 'axios';
-import { tokenService } from './tokenHandler';
+import { storageHandler } from './storageHandler';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_BACK_END_API_URL,
@@ -15,7 +15,7 @@ api.interceptors.request.use(
     if(publicEndpoints.some((endpoint) => config.url?.includes(endpoint))) {
       return config;
     }
-    const token = tokenService.getToken();
+    const token = storageHandler.getTokenFromStorage();
     console.log("Token in request interceptor:", token);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -32,13 +32,13 @@ api.interceptors.response.use(
   (response) => {
     console.log("return", response);
     if (response.data.token) {
-      tokenService.setToken(response.data.token);
+      storageHandler.setTokenInStorage(response.data.token);
     }
     return response;
   },
   (error) => {
     if (error.response?.status === 401) {
-      tokenService.clearAll();
+      storageHandler.clearAllFromStorage();
       alert('Your session has expired. Please log in again.');
       window.location.href = '/login';
     }

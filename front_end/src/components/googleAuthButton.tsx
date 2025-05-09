@@ -1,6 +1,7 @@
 // src/components/GoogleAuthButton.tsx
-import { GoogleLogin } from "@react-oauth/google";
-import api from "../utility/api";
+import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
+import api from "../services/api";
+import { useAuth } from "../hooks/AuthContext";
 
 interface GoogleAuthButtonProps {
   onSuccess: () => void;
@@ -9,19 +10,15 @@ interface GoogleAuthButtonProps {
 }
 
 const GoogleAuthButton = (props: GoogleAuthButtonProps) => {
+  const { logUserIn } = useAuth();
 
-  const handleGoogleLogin = async (credentialResponse: any) => {
+  const handleGoogleLogin = async (credentialResponse: CredentialResponse) => {
     try {
-      const response = await api.post("/auth/google", {
-        credential: credentialResponse.credential,
-      })
-
-      if (response.statusText != "OK") {
-        throw new Error("Failed to authenticate");
+      if (!credentialResponse.credential) {
+        throw new Error("No credential received from Google.");
       }
-
-      const data = await response.data;
-      console.log("Server Response:", data);
+      console.log("Google Login Response:", credentialResponse);
+      await logUserIn(credentialResponse.credential);
       props.onSuccess();
     } catch (error) {
       console.error("Error during authentication:", error);

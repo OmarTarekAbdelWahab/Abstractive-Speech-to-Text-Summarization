@@ -2,11 +2,11 @@ import Button from "../components/button";
 import FormField from "../components/formField";
 import { useNavigate } from "react-router-dom";
 import NavBar from "../components/navBar";
-import GoogleAuthButton from "../components/googleAuthButton";
+import GoogleAuthButton from "../components/GoogleAuthButton";
 import { useState } from "react";
-import api from "../utility/api";
+import { useAuth } from "../hooks/AuthContext";
 
-const SignUp = () => {
+const SignUp = ({ navigateOnSuccess }: { navigateOnSuccess: string}) => {
   const navigator = useNavigate();
 
   const [username, setUsername] = useState("");
@@ -14,6 +14,7 @@ const SignUp = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const { registerUser } = useAuth();
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -45,20 +46,14 @@ const SignUp = () => {
     console.log("Signup clicked", username, email, password, confirmPassword);
 
     try {
-      const response = await api.post("user/register", {
-        username, email, password
-      });
-      const data = response.data;
-      console.log("Server Response:", data);
-      navigator("/dashboard");
+      await registerUser({ username, email, password });
+      navigator(navigateOnSuccess);
     } catch (error: any) {
-      console.log("Hereeeee");
       const data = error.response.data;
       console.log("Error response", data);
       
       const newErrors: Record<string, string> = {};
       for (const field in data.errors) {
-        console.log("here at ", field)
         newErrors[field] = data.errors[field].message;
       }
 
@@ -115,7 +110,7 @@ const SignUp = () => {
               isSubmit={true}
             />
             <GoogleAuthButton
-              onSuccess={() => navigator("/dashboard")}
+              onSuccess={() => navigator(navigateOnSuccess)}
               onError={() => {
                 alert("Sign Up Failed");
               }}

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { tokenService } from './tokenHandler';
+import { storageHandler } from '../services/storageHandler';
 
 const fastAPI = axios.create({
   baseURL: import.meta.env.VITE_FAST_API_URL,
@@ -16,7 +16,7 @@ fastAPI.interceptors.request.use(
     if(publicEndpoints.some((endpoint) => config.url?.includes(endpoint))) {
       return config;
     }
-    const token = tokenService.getToken();
+    const token = storageHandler.getTokenFromStorage();
     console.log("Token in request interceptor:", token);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

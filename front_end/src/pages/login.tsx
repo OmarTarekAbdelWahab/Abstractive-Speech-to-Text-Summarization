@@ -1,16 +1,17 @@
 import Button from "../components/button";
 import FormField from "../components/formField";
 import NavBar from "../components/navBar";
-import GoogleAuthButton from "../components/googleAuthButton";
+import GoogleAuthButton from "../components/GoogleAuthButton";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import api from "../utility/api";
+import { useAuth } from "../hooks/AuthContext";
 
-const Login = () => {
+const Login = ({ navigateOnSuccess }: { navigateOnSuccess: string}) => {
   const navigator = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const { logUserIn } = useAuth();
 
   const validateForm = () => {
     const newErrors: {[key:string ]: string} = {};
@@ -32,18 +33,9 @@ const Login = () => {
       console.log("Form validation failed", errors);
       return;
     }
-    console.log("Login clicked", email, password);
     try {
-      const response = await api.post("/user/login", {
-        email, password
-      });
-      const data = await response.data;
-      console.log("Login response", data);
-      if (response.statusText !== "OK") {
-        
-        return;
-      }
-      navigator("/dashboard");
+      await logUserIn({ email, password });
+      navigator(navigateOnSuccess);
     } catch (error: any) {
       console.log("Login error", error.message, ": ", error.response.data.message);
       setErrors({ password: error.response.data.message });
@@ -80,7 +72,7 @@ const Login = () => {
             />
             <Button text="Login" isSubmit={true}/>
             <GoogleAuthButton
-              onSuccess={() => navigator("/dashboard")}
+              onSuccess={() => navigator(navigateOnSuccess)}
               onError={() => {
                 alert("Login Failed");
               }}

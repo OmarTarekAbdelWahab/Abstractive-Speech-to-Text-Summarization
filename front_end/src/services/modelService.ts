@@ -1,4 +1,4 @@
-import fastAPI from "../utility/fastAPI";
+import fastAPI from "./fastAPI";
 
 
 
