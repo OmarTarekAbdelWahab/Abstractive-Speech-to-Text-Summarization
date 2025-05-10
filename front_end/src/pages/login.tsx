@@ -1,8 +1,7 @@
-import Button from "../components/button";
-import FormField from "../components/formField";
-import NavBar from "../components/navBar";
+import Button from "../components/Button";
+import FormField from "../components/FormField";
 import GoogleAuthButton from "../components/GoogleAuthButton";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../hooks/AuthContext";
 
@@ -45,8 +44,7 @@ const Login = ({ navigateOnSuccess }: { navigateOnSuccess: string}) => {
 
   return (
     <>
-      <NavBar />
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="flex font-primary items-center justify-center min-h-screen bg-background">
         <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
           <h2 className="text-2xl font-bold text-center text-gray-700 mb-6">
             Login
@@ -70,6 +68,13 @@ const Login = ({ navigateOnSuccess }: { navigateOnSuccess: string}) => {
               onChange={(e) => setPassword(e.target.value)}
               error={errors.password}
             />
+            <div className="flex items-center justify-center">
+              <p>Don't have an account?{" "}
+                <Link to="/signup" className="font-bold underline hover:underline hover:text-secondary cursor-pointer">
+                  Sign Up now
+                </Link>
+              </p>
+            </div>
             <Button text="Login" isSubmit={true}/>
             <GoogleAuthButton
               onSuccess={() => navigator(navigateOnSuccess)}
@@ -78,12 +83,12 @@ const Login = ({ navigateOnSuccess }: { navigateOnSuccess: string}) => {
               }}
               text="Login with google"
             />
-            <a
+            {/* <a
               className="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800 padding-8"
               href="#"
             >
               Forgot Password?
-            </a>
+            </a> */}
           </form>
         </div>
       </div>

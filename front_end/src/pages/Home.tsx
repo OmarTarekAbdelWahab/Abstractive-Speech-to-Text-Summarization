@@ -1,16 +1,15 @@
-import { useAuth } from '../hooks/AuthContext'; // Adjust the import path as necessary
+import { useAuth } from '../hooks/AuthContext';
 const Home = () => {
-    const { user } = useAuth(); // Assuming you have a custom hook for authentication
+    const { user } = useAuth();
     return (
         <>
-            <div>Home!!</div>
-            {user?<div>
-                    <p>{user.email}</p>
-                    <p>{user.username}</p>
-                    <p>{user.createdAt}</p>
-                </div>
-                :<p>Not logged in</p>
-            }
+            <div className="flex flex-col font-primary items-center justify-center h-screen bg-background text-text">
+                <h1 className="text-4xl font-title font-bold mb-4">Welcome to Speech Summarizer</h1>
+                <p className="text-xl mb-2">Your AI-powered speech summarization tool</p>
+                {user && (
+                    <p className="text-lg mt-4">Hello, {user.email}!</p>
+                )}
+            </div>
         </>
     );
 };

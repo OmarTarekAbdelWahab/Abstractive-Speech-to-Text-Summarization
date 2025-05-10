@@ -1,1 +1,20 @@
+@import url("https://fonts.googleapis.com/css2?family=Poiret+One&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cascadia+Code:ital,wght@0,200..700;1,200..700&display=swap");
 @import "tailwindcss";
+
+@theme {
+    --font-title: "Poiret One", sans-serif;
+    --font-primary: "Cascadia Code", sans-serif;
+    /* --font-secondary: "Lobster", sans-serif; */
+    --color-text: #1e0807;
+    --color-background: #fcf3f3;
+    --color-primary: #d13536;
+    --color-primary-dark: #b02a2b;
+    --color-secondary: #91e6da;
+    --color-accent: #6587dc;
+    --color-success: #22c55e;
+    --color-warning: #f59e0b;
+    --color-error: #ef4444;
+    --color-cancel: #ef4444;
+    --color-info: #0ea5e9;
+}

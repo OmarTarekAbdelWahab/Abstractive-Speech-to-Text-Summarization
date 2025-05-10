@@ -1,7 +1,6 @@
-import Button from "../components/button";
-import FormField from "../components/formField";
-import { useNavigate } from "react-router-dom";
-import NavBar from "../components/navBar";
+import Button from "../components/Button";
+import FormField from "../components/FormField";
+import { useNavigate, Link } from "react-router-dom";
 import GoogleAuthButton from "../components/GoogleAuthButton";
 import { useState } from "react";
 import { useAuth } from "../hooks/AuthContext";
@@ -64,8 +63,7 @@ const SignUp = ({ navigateOnSuccess }: { navigateOnSuccess: string}) => {
   }
   return (
     <>
-      <NavBar />
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="flex font-primary items-center justify-center min-h-screen bg-background">
         <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
           <h2 className="text-2xl font-bold text-center text-gray-700 mb-6">
             Sign Up
@@ -105,6 +103,13 @@ const SignUp = ({ navigateOnSuccess }: { navigateOnSuccess: string}) => {
               onChange={(e) => setConfirmPassword(e.target.value)}
               error={errors.confirmPassword}
             />
+            <div className="flex items-center justify-center">
+              <p>Already have an account?{" "}
+                <Link to="/login" className="font-bold underline hover:underline hover:text-secondary cursor-pointer">
+                  Log In now
+                </Link>
+              </p>
+            </div>
             <Button
               text="Sign Up"
               isSubmit={true}

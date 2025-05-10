@@ -1,6 +1,6 @@
 import { useState } from "react";
-import ChatInterface from "../components/chatInterface";
-import HistoryBar from "../components/historyBar";
+import ChatInterface from "../components/ChatInterface";
+import HistoryBar from "../components/HistoryBar";
 
 interface ChatMessage {
   id: number;
