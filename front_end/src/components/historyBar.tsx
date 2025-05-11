@@ -15,26 +15,29 @@ function HistoryBar({ messages }: HistoryBarProps) {
     null
   );
   return (
-    <div className="w-70 bg-blue-500 p-4 overflow-y-auto">
-      <h2 className="text-white text-xl font-bold mb-4">Chat History</h2>
-      <div className="space-y-1">
+    <div className="w-72 bg-background p-4 overflow-y-auto border-r border-primary-light">
+      <h2 className="text-text text-2xl font-bold mb-4 font-title">
+        Chat History
+      </h2>
+      <div className="space-y-2">
         {messages.map((message) => (
           <div
             key={message.id}
             onClick={() => {
-              // Handle message click
-              // need to send the id to backend and get the new chat messages
+              // TODO: send id to backend and fetch new chat
               console.log(`Clicked message: ${message.text}`);
               setSelectedMessageId(message.id);
             }}
-            className={`rounded p-2 ${
+            className={`rounded-lg p-3 transition-all duration-200 cursor-pointer shadow-sm font-primary ${
               selectedMessageId === message.id
-                ? "bg-blue-700"
-                : "bg-blue-500 hover:bg-blue-600"
-            } text-white cursor-pointer`}
+                ? "bg-secondary text-text font-semibold shadow-lg"
+                : "bg-background-dark hover:bg-secondary hover:shadow-md"
+            }`}
           >
             <p className="truncate">{message.text}</p>
-            <p className="text-xs">{message.timestamp.toLocaleTimeString()}</p>
+            <p className="text-xs text-text/60">
+              {message.timestamp.toLocaleTimeString()}
+            </p>
           </div>
         ))}
       </div>

@@ -124,15 +124,15 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
   };
 
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex flex-col h-full bg-background text-text font-primary">
       <div className="flex-1 p-4 overflow-y-auto flex flex-col space-y-2">
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`p-3 rounded-lg shadow w-3/4 ${
+            className={`p-3 text-text rounded-xl shadow max-w-[75%] ${
               message.sender === "bot"
-                ? "bg-blue-100 text-blue-900 self-start"
-                : "bg-white text-gray-800 self-end"
+                ? "bg-primary-light self-start"
+                : "bg-secondary self-end"
             }`}
           >
             <p>{message.text}</p>
@@ -140,39 +140,37 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
         ))}
       </div>
       {/* Display audio if selected */}
-      {audioURL ? (
-        <div className="p-2 shadow-md">
-          <div className="flex items-center justify-center gap-10">
-            <audio controls src={audioURL || ""} />
-            <button
-              onClick={handleDeleteAudioFile}
-              className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-            >
-              Delete Audio
-            </button>
-          </div>
+      {audioURL && (
+        <div className="p-3 bg-background-dark flex items-center justify-between">
+          <audio controls src={audioURL || ""} />
+          <button
+            onClick={handleDeleteAudioFile}
+            className="px-3 py-1 bg-cancel text-white rounded hover:bg-red-600 ml-4"
+          >
+            Delete Audio
+          </button>
         </div>
-      ) : (
-        ""
       )}
-      <div className="p-4 border-t">
+
+      <div className="p-4 border-t border-primary-light bg-background">
         <div className="flex items-center space-x-2">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyPress}
-            className="flex-1 p-2 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-600"
+            className="flex-1 p-2 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-secondary text-sm"
             placeholder="Type a message..."
             rows={1}
           />
           <ToolTip text="record">
             <button
               onClick={() => setShowRecordPopup(true)}
-              className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700"
+              className="p-2 rounded-full bg-secondary text-text hover:bg-secondary/80"
             >
               <FaMicrophone />
             </button>
           </ToolTip>
+
           {showRecordPopup && (
             <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
               <div className="bg-white rounded-xl shadow-xl p-6 relative w-[50%] h-[50%] max-w-xl">
@@ -187,26 +185,29 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
               </div>
             </div>
           )}
+
           <ToolTip text="upload">
             <button
               onClick={handleFileUpload}
-              className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700"
+              className="p-2 rounded-full bg-secondary text-text hover:bg-secondary/80"
             >
               <FaUpload />
             </button>
           </ToolTip>
+
           <ToolTip text="insert link">
             <button
               onClick={handleLinkInsert}
-              className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700"
+              className="p-2 rounded-full bg-secondary text-text hover:bg-secondary/80"
             >
               <FaLink />
             </button>
           </ToolTip>
+
           <ToolTip text="send">
             <button
               onClick={handleSend}
-              className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700"
+              className="p-2 rounded-full bg-primary text-white hover:bg-primary-dark"
             >
               <FaPaperPlane />
             </button>

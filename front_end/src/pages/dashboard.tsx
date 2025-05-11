@@ -13,9 +13,12 @@ function Dashboard() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   return (
-    <div className="flex h-screen bg-gray-200">
+    <div className="flex h-full bg-gray-200">
       <HistoryBar messages={messages} />
-      <ChatInterface messages={messages} setMessages={setMessages} />
+      <div className="flex flex-col flex-1">
+        <ChatInterface messages={messages} setMessages={setMessages} />
+      </div>
+      
     </div>
   );
 }

@@ -8,9 +8,12 @@
     /* --font-secondary: "Lobster", sans-serif; */
     --color-text: #1e0807;
     --color-background: #fcf3f3;
+    --color-background-dark: #e6d1b3;
     --color-primary: #d13536;
     --color-primary-dark: #b02a2b;
+    --color-primary-light: #f28c8c;
     --color-secondary: #91e6da;
+    --color-secondary-lavender: #bda7e0;
     --color-accent: #6587dc;
     --color-success: #22c55e;
     --color-warning: #f59e0b;

@@ -3,18 +3,19 @@ import { useAuth } from "../hooks/AuthContext";
 
 function NavBar() {
   const { logUserOut } = useAuth();
+
   return (
-    <nav className="sticky top-0 font-title bg-primary text-text p-4 flex justify-between items-center">
-      <h1 className="text-4xl font-extrabold">Speech Summarizer</h1>
-      <div>
-        <Link 
-          to="/login" 
-          className="text-2xl font-extrabold hover:underline"
-          onClick={() => logUserOut()}
-        >
-          Sign Out
-        </Link>
-      </div>
+    <nav className="fixed top-0 left-0 w-full z-50 font-title bg-primary text-text p-4 flex justify-between items-center shadow-md h-16">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold">
+        Speech Summarizer
+      </h1>
+      <Link
+        to="/login"
+        className="text-lg sm:text-xl md:text-2xl font-bold hover:underline"
+        onClick={logUserOut}
+      >
+        Sign Out
+      </Link>
     </nav>
   );
 }
