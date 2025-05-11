@@ -14,6 +14,7 @@ const AudioRecorder = ({ onSave }: AudioRecorderProps) => {
     const [finalAudioBlob, setFinalAudioBlob] = useState<Blob | null>(null);
 
     const startRecording = async () => {
+        setRecordingStatus(true);
         setAudioUrl("");
         setFinalAudioBlob(null);
 
@@ -31,9 +32,9 @@ const AudioRecorder = ({ onSave }: AudioRecorderProps) => {
         };
 
         mediaRecorderRef.current.start();
-        setRecordingStatus(true);
     };
     const stopRecording = () => {
+        setRecordingStatus(false);
         if (!mediaRecorderRef.current) return;
         mediaRecorderRef.current.onstop = () => {
             const audioBlob = new Blob(audioChunks.current, { type: mimeType });
@@ -43,13 +44,12 @@ const AudioRecorder = ({ onSave }: AudioRecorderProps) => {
             audioChunks.current = [];
         };
         mediaRecorderRef.current.stop();
-        setRecordingStatus(false);
     };
     return (
         <div className="flex flex-col items-center justify-center space-y-4 h-full">
             {!recordingStatus ? (
                 <button
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg shadow transition duration-200"
+                    className="bg-primary hover:bg-primary-dark font-semibold px-6 py-3 rounded-lg shadow transition duration-200"
                     onClick={startRecording}
                 >
                     🎤 Start Recording
@@ -58,7 +58,7 @@ const AudioRecorder = ({ onSave }: AudioRecorderProps) => {
                 <div className="flex flex-col items-center space-y-2">
                     <p className="text-red-600 font-medium">Recording...</p>
                     <button
-                        className="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-3 rounded-lg shadow transition duration-200"
+                        className="bg-cancel hover:bg-red-600 text-white font-semibold px-6 py-3 rounded-lg shadow transition duration-200"
                         onClick={stopRecording}
                     >
                         ⏹ Stop Recording
@@ -68,7 +68,7 @@ const AudioRecorder = ({ onSave }: AudioRecorderProps) => {
             {audioUrl && <audio controls src={audioUrl} className="w-full mt-4" />}
             {finalAudioBlob && (
                 <button
-                    className="absolute bottom-2 right-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-3 py-1 rounded-lg shadow transition duration-200"
+                    className="absolute bottom-2 right-2 bg-success hover:bg-green-700 text-white font-semibold p-3 rounded-lg shadow transition duration-200"
                     onClick={() => onSave(finalAudioBlob, audioUrl)}
                 >
                     Save Audio

@@ -129,7 +129,7 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`p-3 text-text rounded-xl shadow max-w-[75%] ${
+            className={`p-3 transition-all duration-200 text-text rounded-xl shadow max-w-[75%] ${
               message.sender === "bot"
                 ? "bg-primary-light self-start"
                 : "bg-secondary self-end"
@@ -172,11 +172,11 @@ function ChatInterface({ messages, setMessages }: ChatInterfaceProps) {
           </ToolTip>
 
           {showRecordPopup && (
-            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-              <div className="bg-white rounded-xl shadow-xl p-6 relative w-[50%] h-[50%] max-w-xl">
+            <div className="fixed inset-0 bg-black/30 w-full backdrop-blur-sm flex items-center justify-center z-40">
+              <div className="text-text bg-background rounded-xl shadow-xl p-6 relative w-1/2 h-1/2 max-w-xl">
                 <button
                   onClick={() => setShowRecordPopup(false)}
-                  className="absolute top-2 right-2 text-gray-600 hover:text-red-600 text-2xl font-bold"
+                  className="absolute top-2 right-2 text-gray-600 hover:text-cancel text-2xl font-bold"
                   aria-label="Close"
                 >
                   &times;
