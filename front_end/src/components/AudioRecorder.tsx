@@ -3,20 +3,16 @@ import { useRef, useState } from "react";
 const mimeType = "audio/webm";
 
 interface AudioRecorderProps {
-    onSave: (audioBlob: Blob, audioUrl: string) => void;
+    onFinish: (audioBlob: Blob, audioUrl: string) => void;
 }
 
-const AudioRecorder = ({ onSave }: AudioRecorderProps) => {
+const AudioRecorder = ({ onFinish }: AudioRecorderProps) => {
     const [recordingStatus, setRecordingStatus] = useState(false);
     const mediaRecorderRef = useRef<MediaRecorder>(null);
     const audioChunks = useRef<Blob[]>([]);
-    const [audioUrl, setAudioUrl] = useState<string>("");
-    const [finalAudioBlob, setFinalAudioBlob] = useState<Blob | null>(null);
 
     const startRecording = async () => {
         setRecordingStatus(true);
-        setAudioUrl("");
-        setFinalAudioBlob(null);
 
         if (!("MediaRecorder" in window)) {
             alert("MediaRecorder not supported on your browser!");
@@ -38,15 +34,14 @@ const AudioRecorder = ({ onSave }: AudioRecorderProps) => {
         if (!mediaRecorderRef.current) return;
         mediaRecorderRef.current.onstop = () => {
             const audioBlob = new Blob(audioChunks.current, { type: mimeType });
-            setFinalAudioBlob(audioBlob);
             const url = URL.createObjectURL(audioBlob);
-            setAudioUrl(url);
+            onFinish(audioBlob, url);
             audioChunks.current = [];
         };
         mediaRecorderRef.current.stop();
     };
     return (
-        <div className="flex flex-col items-center justify-center space-y-4 h-full">
+        <div className="flex flex-col items-center justify-center space-y-4 mt-4">
             {!recordingStatus ? (
                 <button
                     className="bg-primary hover:bg-primary-dark font-semibold px-6 py-3 rounded-lg shadow transition duration-200"
@@ -65,15 +60,15 @@ const AudioRecorder = ({ onSave }: AudioRecorderProps) => {
                     </button>
                 </div>
             )}
-            {audioUrl && <audio controls src={audioUrl} className="w-full mt-4" />}
-            {finalAudioBlob && (
+            {/* {audioUrl && <audio controls src={audioUrl} className="w-full mt-4" />} */}
+            {/* {finalAudioBlob && (
                 <button
                     className="absolute bottom-2 right-2 bg-success hover:bg-green-700 text-white font-semibold p-3 rounded-lg shadow transition duration-200"
                     onClick={() => onSave(finalAudioBlob, audioUrl)}
                 >
                     Save Audio
                 </button>
-            )}
+            )} */}
         </div>
     );
 };

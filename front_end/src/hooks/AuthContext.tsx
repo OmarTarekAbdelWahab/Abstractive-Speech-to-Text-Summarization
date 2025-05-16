@@ -13,7 +13,6 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode}) => {
-    console.log("AuthProvider rendered");
     const [user, setUser] = useState<User | null>(storageHandler.getUserFromStorage());
 
     const logUserIn = async (credentials: LoginCredentials | string) => {

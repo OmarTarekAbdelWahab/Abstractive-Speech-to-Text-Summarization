@@ -9,13 +9,21 @@ function NavBar() {
       <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold">
         Speech Summarizer
       </h1>
-      <Link
-        to="/login"
-        className="text-lg sm:text-xl md:text-2xl font-bold hover:underline"
-        onClick={logUserOut}
-      >
-        Sign Out
-      </Link>
+      <div className=" md:flex space-x-4">
+        <Link
+          to="/"
+          className="text-lg sm:text-xl md:text-2xl font-bold hover:underline"
+        >
+          Home
+        </Link>
+        <Link
+          to="/login"
+          className="text-lg sm:text-xl md:text-2xl font-bold hover:underline"
+          onClick={logUserOut}
+        >
+          Sign Out
+        </Link>
+      </div>
     </nav>
   );
 }

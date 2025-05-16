@@ -38,25 +38,21 @@ const SignUp = ({ navigateOnSuccess }: { navigateOnSuccess: string}) => {
     e.preventDefault();
 
     if (!validateForm()) {
-      console.log("Form validation failed", errors);
       return;
     }
 
-    console.log("Signup clicked", username, email, password, confirmPassword);
 
     try {
       await registerUser({ username, email, password });
       navigator(navigateOnSuccess);
     } catch (error: any) {
       const data = error.response.data;
-      console.log("Error response", data);
       
       const newErrors: Record<string, string> = {};
       for (const field in data.errors) {
         newErrors[field] = data.errors[field].message;
       }
 
-      console.log(newErrors)
       setErrors(newErrors);
       return;
     }

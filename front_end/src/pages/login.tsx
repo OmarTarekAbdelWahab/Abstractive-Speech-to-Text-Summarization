@@ -29,14 +29,12 @@ const Login = ({ navigateOnSuccess }: { navigateOnSuccess: string}) => {
     e.preventDefault();
 
     if (!validateForm()) {
-      console.log("Form validation failed", errors);
       return;
     }
     try {
       await logUserIn({ email, password });
       navigator(navigateOnSuccess);
     } catch (error: any) {
-      console.log("Login error", error.message, ": ", error.response.data.message);
       setErrors({ password: error.response.data.message });
       return;
     }

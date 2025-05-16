@@ -11,9 +11,9 @@ const ToolTip = ({
   children,
   text,
   position = "top",
-  textColor = "black",
-  backgroundColor = "white",
-  textSize = "sm",
+  textColor = "white",
+  backgroundColor = "var(--color-primary-light)",
+  textSize = "md",
 }: ToolTipProps) => {
   const getPositionClasses = () => {
     switch (position) {
@@ -28,6 +28,19 @@ const ToolTip = ({
     }
   };
 
+  const getTextSizeClasses = () => {
+    switch (textSize) {
+      case "sm":
+        return "0.75rem";
+      case "md":
+        return "0.875rem";
+      case "lg":
+        return "1rem";
+      default:
+        return "0.875rem";
+    }
+  };
+
   return (
     <div className="relative group">
       {children}
@@ -36,11 +49,13 @@ const ToolTip = ({
           className={`
                 absolute  truncate
                 ${getPositionClasses()} 
-                text-${textColor}
-                bg-${backgroundColor}
-                text-${textSize}
                 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity
             `}
+          style={{
+            backgroundColor: backgroundColor,
+            color: textColor,
+            fontSize: getTextSizeClasses(),
+          }}
         >
           {text}
         </div>

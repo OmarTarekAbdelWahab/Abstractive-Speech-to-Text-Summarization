@@ -7,7 +7,7 @@ export const modelService = {
     try {
         const response = await fastAPI.post<any>('/model', JSON.stringify({prompt: prompt}));
         const data = response.data as { response: string };
-        console.log("Response from model:", data.response);
+        // console.log("Response from model:", data.response);
         return data.response || "No response from model.";
     } catch (error) {
       throw new Error('Failed to send text');
@@ -23,7 +23,7 @@ export const modelService = {
             prompt: prompt
           }));
       const data = response.data as { response: string };
-      console.log("Response from model:", data.response);
+      // console.log("Response from model:", data.response);
       return data.response || "No response from model.";
     } catch (error) {
       throw new Error('Failed to send audio with text');
