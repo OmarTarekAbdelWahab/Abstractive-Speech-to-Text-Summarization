@@ -1,6 +1,5 @@
 // src/components/GoogleAuthButton.tsx
 import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
-import api from "../services/api";
 import { useAuth } from "../hooks/AuthContext";
 
 interface GoogleAuthButtonProps {

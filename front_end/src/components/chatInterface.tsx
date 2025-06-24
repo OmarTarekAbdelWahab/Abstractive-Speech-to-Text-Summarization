@@ -1,89 +1,46 @@
 import { useState } from "react";
 import { FaPaperPlane } from "react-icons/fa";
-import { modelService } from "../services/modelService";
+import { messagingService } from "../services/messagingService";
+import { Message } from "../models/models";
 import ToolTip from "./ToolTip";
 
-interface ChatMessage {
-  id: number;
-  text: string;
-  timestamp: Date;
-  sender: "user" | "bot";
-}
+
 
 interface ChatInterfaceProps {
-  messages: ChatMessage[];
-  setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
-  audioFile: File;
-  audioURL: string
+  messages: Message[];
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  audioId: number;
 }
 
-function ChatInterface({ messages, setMessages, audioFile, audioURL }: ChatInterfaceProps) {
+function ChatInterface({ messages, setMessages, audioId }: ChatInterfaceProps) {
   const [input, setInput] = useState("");
-  const [firstSummary, setFirstSummary] = useState(true);
-
-  const handleSendWithAudio = async () => {
-    let trimText = input.trim();
-    const text = "Summarize this audio" + (trimText? " with the following instructions: " + trimText: "");
-    setInput("");
-
-    // if file is selected, send audio with text
-    const reader = new FileReader();
-
-    reader.onloadend = async () => {
-      const base64Audio = reader.result?.toString().split(",")[1]; // remove data URL prefix
-      if (!base64Audio) return;
-
-      modelService
-        .sendAudioWithText(
-          audioFile.name,
-          audioFile.type,
-          base64Audio,
-          text
-        )
-        .then((response) => {
-          const botMessage: ChatMessage = {
-            id: Date.now() + 1,
-            text: response,
-            timestamp: new Date(),
-            sender: "bot",
-          };
-          setMessages((prevMessages) => [...prevMessages, botMessage]);
-        });
-    };
-
-    reader.readAsDataURL(audioFile);
-  };
 
   const handleSend = () => {
-    if (firstSummary) {
-      setFirstSummary(false);
-      handleSendWithAudio();
-      return;
-    }
+    // if (firstSummary) {
+    //   setFirstSummary(false);
+    //   handleSendWithAudio();
+    //   return;
+    // }
 
-    let text = input.trim();
-    if (!text) return;
+    let content = input.trim();
+    if (!content) return;
 
     setInput("");
 
-    const newMessage: ChatMessage = {
-      id: Date.now(),
-      text,
-      timestamp: new Date(),
+    const newMessage: Message = {
+      // id: Date.now(),
+      content,
+      timestamp: Date.now(),
       sender: "user",
+      audioId: audioId,
     };
     setMessages((prevMessages) => [...prevMessages, newMessage]);
-  
 
-    modelService.sendTextOnly(text).then((response) => {
-      const botMessage: ChatMessage = {
-        id: Date.now() + 1,
-        text: response,
-        timestamp: new Date(),
-        sender: "bot",
-      };
+    messagingService.sendMessage(audioId, content, newMessage.timestamp).then((response) => {
+      const botMessage: Message = response;
       setMessages((prevMessages) => [...prevMessages, botMessage]);
     });
+
     return;
   }
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -104,14 +61,14 @@ function ChatInterface({ messages, setMessages, audioFile, audioURL }: ChatInter
             <>
               {messages.map((message) => (
                 <div
-                  key={message.id}
+                  key={message.timestamp}
                   className={`p-3 transition-all duration-200 text-text rounded-xl shadow max-w-[75%] ${
                     message.sender === "bot"
                       ? "bg-primary-light self-start"
                       : "bg-secondary self-end"
                   }`}
                 >
-                  <p>{message.text}</p>
+                  <p>{message.content}</p>
                 </div>
               ))}
             </>

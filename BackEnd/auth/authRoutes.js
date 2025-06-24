@@ -41,7 +41,7 @@ router.post("/google", async (req, res, next) => {
             status: 1,
             token,
             user: { 
-                name: user.username, 
+                username: user.username, 
                 email: user.email, 
                 loginCount: user.loginCount,
                 createdAt: user.createdAt,

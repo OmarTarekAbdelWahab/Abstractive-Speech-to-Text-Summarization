@@ -36,12 +36,12 @@ export const authService = {
   },
 
   async logout(): Promise<void> {
-    try {
-      await api.post('/logout');
-    } catch (error) {
-      console.error('Logout failed:', error);
-    } finally {
-      storageHandler.clearAllFromStorage();  
-    }
+    // try {
+    //   await api.post('/logout');
+    // } catch (error) {
+    //   console.error('Logout failed:', error);
+    // } finally {
+    //   storageHandler.clearAllFromStorage();  
+    // }
   },
 };

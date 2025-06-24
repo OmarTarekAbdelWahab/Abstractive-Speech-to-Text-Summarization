@@ -18,6 +18,13 @@ const Home = () => {
                 >
                     Upload Audio
                 </button>
+                <span className='text-lg mt-4'>Or</span>
+                <button
+                    onClick={() => navigate('/dashboard?dontUpload=true')}
+                    className="px-4 bg-primary hover:bg-primary-dark text-white font-medium py-2 rounded-lg transition duration-200 mt-4"
+                >
+                    See Your Chats
+                </button>
             </div>
         </>
     );

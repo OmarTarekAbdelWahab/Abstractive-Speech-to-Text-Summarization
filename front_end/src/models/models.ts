@@ -23,3 +23,16 @@ export interface GoogleUser {
   name: string;
   sub: string;
 };
+
+export interface Message {
+  content: string;
+  timestamp: number;
+  sender: "user" | "bot";
+  audioId: number;
+};
+
+export interface ChatPreview {
+  audioId: number;
+  title: string;
+  createdAt: number;
+}
