@@ -1,8 +1,8 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import App from "./App.tsx";
 import { AuthProvider } from "./hooks/AuthContext.tsx";
+import App from "./app.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

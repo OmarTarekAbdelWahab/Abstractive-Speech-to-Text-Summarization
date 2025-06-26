@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import ChatInterface from "../components/ChatInterface";
-import HistoryBar from "../components/HistoryBar";
+import ChatInterface from "../components/chatInterface";
+import HistoryBar from "../components/historyBar";
 import AudioGrabber from "../components/AudioGrabber";
 import { ChatPreview, Message } from "../models/models";
 import { messagingService } from "../services/messagingService";
@@ -19,29 +19,24 @@ function Dashboard() {
     updateChatHistory();
   }, []);
 
-
   const handleFileUpload = (newFile: File) => {
     // send to backend and grab id
     const reader = new FileReader();
-    
+
     reader.onloadend = async () => {
       const base64Audio = reader.result?.toString().split(",")[1]; // remove data URL prefix
       if (!base64Audio) return;
-      
+      console.log("Uploading audio type:", newFile.type);
       messagingService
-      .uploadAudio(
-        newFile.name,
-        newFile.type,
-        base64Audio,
-      )
-      .then((response) => {
+        .uploadAudio(newFile.name, newFile.type, base64Audio)
+        .then((response) => {
           setAudioId(response);
           updateChatHistory();
           setMessages([]);
-          
+
           console.log("Response from model:", response);
         });
-    }
+    };
 
     reader.readAsDataURL(newFile);
   };
@@ -66,23 +61,29 @@ function Dashboard() {
       }
     });
   };
-  
+
   return (
     <>
-      {
-        !audioId && !dontUpload?
-        (
-          <AudioGrabber handleGetFile={handleFileUpload}/>
-        ):
+      {!audioId && !dontUpload ? (
+        <AudioGrabber handleGetFile={handleFileUpload} />
+      ) : (
         <div className="flex h-full bg-gray-200">
-          {chatHistory.length > 0 && <HistoryBar 
-          chats={chatHistory} selectAudio={selectAudio} selectedAudioId={audioId} />}
+          {chatHistory.length > 0 && (
+            <HistoryBar
+              chats={chatHistory}
+              selectAudio={selectAudio}
+              selectedAudioId={audioId}
+            />
+          )}
           <div className="flex flex-col flex-1">
-            <ChatInterface messages={messages} setMessages={setMessages} audioId={audioId!} />
+            <ChatInterface
+              messages={messages}
+              setMessages={setMessages}
+              audioId={audioId!}
+            />
           </div>
-          
         </div>
-      }
+      )}
     </>
   );
 }

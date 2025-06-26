@@ -1,18 +1,18 @@
-import Button from "../components/Button";
-import FormField from "../components/FormField";
+import Button from "../components/button";
+import FormField from "../components/formField";
 import { useNavigate, Link } from "react-router-dom";
-import GoogleAuthButton from "../components/GoogleAuthButton";
+import GoogleAuthButton from "../components/googleAuthButton";
 import { useState } from "react";
 import { useAuth } from "../hooks/AuthContext";
 
-const SignUp = ({ navigateOnSuccess }: { navigateOnSuccess: string}) => {
+const SignUp = ({ navigateOnSuccess }: { navigateOnSuccess: string }) => {
   const navigator = useNavigate();
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const { registerUser } = useAuth();
 
   const validateForm = () => {
@@ -29,10 +29,10 @@ const SignUp = ({ navigateOnSuccess }: { navigateOnSuccess: string}) => {
     if (password !== confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
     }
-      
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }
+  };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,13 +41,12 @@ const SignUp = ({ navigateOnSuccess }: { navigateOnSuccess: string}) => {
       return;
     }
 
-
     try {
       await registerUser({ username, email, password });
       navigator(navigateOnSuccess);
     } catch (error: any) {
       const data = error.response.data;
-      
+
       const newErrors: Record<string, string> = {};
       for (const field in data.errors) {
         newErrors[field] = data.errors[field].message;
@@ -56,7 +55,7 @@ const SignUp = ({ navigateOnSuccess }: { navigateOnSuccess: string}) => {
       setErrors(newErrors);
       return;
     }
-  }
+  };
   return (
     <>
       <div className="flex font-primary items-center justify-center min-h-screen bg-background">
@@ -64,9 +63,7 @@ const SignUp = ({ navigateOnSuccess }: { navigateOnSuccess: string}) => {
           <h2 className="text-2xl font-bold text-center text-gray-700 mb-6">
             Sign Up
           </h2>
-          <form
-            onSubmit={handleSignup}
-          >
+          <form onSubmit={handleSignup}>
             <FormField
               type="text"
               label="Username"
@@ -100,16 +97,17 @@ const SignUp = ({ navigateOnSuccess }: { navigateOnSuccess: string}) => {
               error={errors.confirmPassword}
             />
             <div className="flex items-center justify-center">
-              <p>Already have an account?{" "}
-                <Link to="/login" className="font-bold underline hover:underline hover:text-secondary cursor-pointer">
+              <p>
+                Already have an account?{" "}
+                <Link
+                  to="/login"
+                  className="font-bold underline hover:underline hover:text-secondary cursor-pointer"
+                >
                   Log In now
                 </Link>
               </p>
             </div>
-            <Button
-              text="Sign Up"
-              isSubmit={true}
-            />
+            <Button text="Sign Up" isSubmit={true} />
             <GoogleAuthButton
               onSuccess={() => navigator(navigateOnSuccess)}
               onError={() => {

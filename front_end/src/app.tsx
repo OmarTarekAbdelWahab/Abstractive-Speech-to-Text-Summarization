@@ -4,11 +4,11 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import Login from "./pages/Login";
-import SignUp from "./pages/SignUp";
-import Dashboard from "./pages/Dashboard";
 import ProtectedLayout from "./layouts/ProtectedLayout";
 import Home from "./pages/Home";
+import Login from "./pages/login";
+import SignUp from "./pages/signUp";
+import Dashboard from "./pages/dashboard";
 
 function App() {
   return (
