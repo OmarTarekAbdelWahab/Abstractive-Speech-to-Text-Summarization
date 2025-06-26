@@ -4,6 +4,8 @@ import { BadRequestError } from '../Errors/errors.js';
 import AudioModel from '../models/Audio.js';
 import Message from '../models/Message.js';
 import User from '../models/User.js';
+import { callFastApiModel } from '../Services/llmCaller.js';
+import { convertWebmBufferToWav } from '../Utilities/convert_audio.js';
 
 
 export const login = async (req, res, next) => {
@@ -116,12 +118,20 @@ export const uploadAudio = async (req, res, next) => {
         if (!fs.existsSync(userDir)) {
             fs.mkdirSync(userDir, { recursive: true });
         }
-        const fileName = `${Date.now()}_${title.split('.')[0].replace(/\s+/g, "_")}.${type.split("/")[1] || "webm"}`;
-        const filePath = path.join(userDir, fileName);
 
+        console.log("Type:", type.split("/")[1]);
+
+        const fileName = `${Date.now()}_${title.split('.')[0].replace(/\s+/g, "_")}.${type.split("/")[1] || "wav"}`;
+        const filePath = path.join(userDir, fileName);
         // Decode base64 and save file
         const buffer = Buffer.from(audio_data, "base64");
-        fs.writeFileSync(filePath, buffer);
+
+        if(type.split("/")[1] === "webm" || type.split("/")[1] === "" || type.split("/")[1] === "wav"){
+            await convertWebmBufferToWav(buffer, filePath);
+        }
+        else{
+            fs.writeFileSync(filePath, buffer);
+        }
 
         // Save to DB
         const audio = new AudioModel({
@@ -168,7 +178,7 @@ export const addMessage = async (req, res, next) => {
         console.log("Message saved to DB:", message);
 
         // todo
-        const modelResponse = "This is an artificial response!!";
+        const modelResponse = await callFastApiModel(audio.audioUrl, content);
 
         const botMessage = new Message({
             user: userId, // Assuming the bot uses the same user ID
