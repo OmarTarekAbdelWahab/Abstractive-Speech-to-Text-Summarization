@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import tokenVerifier from '../middleware/tokenVerifier.js';
 
-import { login, register, getUserData, uploadAudio, addMessage, getMessages, getChatHistory } from '../Controllers/userControllers.js';
+import { login, register, getUserData, uploadAudio, addMessage, getMessages, getChatHistory, saveEditMessage, promptMessage } from '../Controllers/userControllers.js';
 
 const router = Router();
 
@@ -19,5 +19,9 @@ router.post("/addMessage", tokenVerifier, addMessage);
 router.get("/getMessages/:audioId", tokenVerifier, getMessages);
 
 router.get("/getChatHistory", tokenVerifier, getChatHistory);
+
+router.post("/saveEditMessage", tokenVerifier, saveEditMessage);
+
+router.post("/promptMessage", tokenVerifier, promptMessage);
 
 export default router;

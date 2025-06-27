@@ -18,10 +18,12 @@ export const messagingService = {
   },
   async saveMessage(messageId: number, newContent: string): Promise<boolean> {
     const response = await api.post<boolean>('/user/saveEditMessage', { messageId, newContent });
+    console.log("Response from model:", response);
     return response.data;
   },
   async promptEditMessage(messageContent: string, prompt: string): Promise<string> {
     const response = await api.post<string>('/user/promptMessage', { messageContent, prompt });
+    console.log("Response from model:", response);
     return response.data;
   },
   async getMessages(audioId: number): Promise<Message[]> {

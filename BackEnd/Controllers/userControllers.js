@@ -4,7 +4,7 @@ import { BadRequestError } from '../Errors/errors.js';
 import AudioModel from '../models/Audio.js';
 import Message from '../models/Message.js';
 import User from '../models/User.js';
-import { callFastApiModel } from '../Services/llmCaller.js';
+import { callModelAudioPrompt, callModelMessagePrompt } from '../Services/llmCaller.js';
 import { convertWebmBufferToWav } from '../Utilities/convert_audio.js';
 
 
@@ -177,8 +177,7 @@ export const addMessage = async (req, res, next) => {
         await message.save();
         console.log("Message saved to DB:", message);
 
-        // todo
-        const modelResponse = await callFastApiModel(audio.audioUrl, content);
+        const modelResponse = await callModelAudioPrompt(audio.audioUrl, content);
 
         const botMessage = new Message({
             user: userId, // Assuming the bot uses the same user ID
@@ -191,7 +190,9 @@ export const addMessage = async (req, res, next) => {
         await botMessage.save();
         console.log("Bot message saved to DB:", botMessage);
 
-        return res.status(201).json(botMessage);
+        const response = await Message.findOne({ audio: botMessage.audio, user: botMessage.user, content: botMessage.content, timestamp: botMessage.timestamp});
+
+        return res.status(201).json(response);
     } catch (error) {
         next(error);
     }
@@ -224,16 +225,17 @@ export const getMessages = async (req, res, next) => {
 
 export const promptMessage = async (req, res, next) => {
     try {
-        const { messageContent, prompt} = req.body;
+        const { messageContent, prompt } = req.body;
         const userId = req.user._id;
         if (!messageContent || !prompt) {
             throw new BadRequestError("Message content and prompt are required!");
         }
 
         // todo call the llm
-        const response = `new message from LLM"`;
+        const newContent = await callModelMessagePrompt(messageContent, prompt);
+        // console.log("Prompting Message:", prompt);
 
-        return response;
+        return res.status(200).json(newContent);
     } catch (error) {
         next(error);
     }
@@ -257,9 +259,9 @@ export const saveEditMessage = async (req, res, next) => {
         // Update the message content
         message.content = newContent;
         await message.save();
-        
-        console.log("Message updated:", message);
-        return true;
+        const success = true;
+        console.log("Message updated:", newContent);
+        return res.status(200).json(success);
     } catch (error) {
         next(error);
     }

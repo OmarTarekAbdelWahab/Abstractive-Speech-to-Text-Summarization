@@ -13,6 +13,7 @@ interface ChatInterfaceProps {
 function ChatInterface({ messages, setMessages, audioId }: ChatInterfaceProps) {
   const [input, setInput] = useState("");
   const [textPrompt, setTextPrompt] = useState("");
+  // const [currentEditableContent, setCurrentEditableContent] = useState("");
 
   const handleSendEditMessage = async (messageContent: string) => {
     let prompt = textPrompt.trim();
@@ -31,6 +32,7 @@ function ChatInterface({ messages, setMessages, audioId }: ChatInterfaceProps) {
       );
     }
   };
+
   const handleSend = () => {
     let content = input.trim();
     if (!content) return;
@@ -82,6 +84,11 @@ function ChatInterface({ messages, setMessages, audioId }: ChatInterfaceProps) {
                     <p
                       contentEditable={message.isEditable}
                       className="border-b border-dashed border-primary-light pb-1"
+                      suppressContentEditableWarning={true}
+                      onInput={(e) => {
+                        console.log(e.currentTarget.textContent);
+                        message.content = e.currentTarget.textContent || "";
+                      }}
                     >
                       {message.content}
                     </p>
