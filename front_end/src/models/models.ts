@@ -29,6 +29,8 @@ export interface Message {
   timestamp: number;
   sender: "user" | "bot";
   audioId: number;
+  isEditable: boolean;
+  messageId?: number;
 };
 
 export interface ChatPreview {

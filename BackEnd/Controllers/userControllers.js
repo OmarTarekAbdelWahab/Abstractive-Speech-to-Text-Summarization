@@ -208,6 +208,7 @@ export const getMessages = async (req, res, next) => {
 
         const returnedMessages = messages.map((message) => {
             return {
+                messageId: message._id,
                 audioId: message.audio,
                 sender: message.sender,
                 content: message.content,
@@ -220,6 +221,49 @@ export const getMessages = async (req, res, next) => {
         next(error);
     }
 };
+
+export const promptMessage = async (req, res, next) => {
+    try {
+        const { messageContent, prompt} = req.body;
+        const userId = req.user._id;
+        if (!messageContent || !prompt) {
+            throw new BadRequestError("Message content and prompt are required!");
+        }
+
+        // todo call the llm
+        const response = `new message from LLM"`;
+
+        return response;
+    } catch (error) {
+        next(error);
+    }
+}
+
+export const saveEditMessage = async (req, res, next) => {
+    try {
+        const { messageId, newContent } = req.body;
+        const userId = req.user._id;
+
+        if (!messageId || !newContent) {
+            throw new BadRequestError("Message ID and new content are required!");
+        }
+
+        // Find the message by ID
+        const message = await Message.findById(messageId);
+        if (!message) {
+            throw new BadRequestError("Message not found!");
+        }
+
+        // Update the message content
+        message.content = newContent;
+        await message.save();
+        
+        console.log("Message updated:", message);
+        return true;
+    } catch (error) {
+        next(error);
+    }
+}
 
 export const getChatHistory = async (req, res, next) => {
     try {
