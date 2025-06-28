@@ -13,7 +13,6 @@ interface ChatInterfaceProps {
 function ChatInterface({ messages, setMessages, audioId }: ChatInterfaceProps) {
   const [input, setInput] = useState("");
   const [textPrompt, setTextPrompt] = useState("");
-  // const [currentEditableContent, setCurrentEditableContent] = useState("");
 
   const handleSendEditMessage = async (messageContent: string) => {
     let prompt = textPrompt.trim();
@@ -82,6 +81,7 @@ function ChatInterface({ messages, setMessages, audioId }: ChatInterfaceProps) {
                 {message.sender === "bot" ? (
                   <div className="flex flex-col space-y-2">
                     <p
+                      style={{ whiteSpace: "pre-line" }}
                       contentEditable={message.isEditable}
                       className="border-b border-dashed border-primary-light pb-1"
                       suppressContentEditableWarning={true}
@@ -154,7 +154,7 @@ function ChatInterface({ messages, setMessages, audioId }: ChatInterfaceProps) {
                     )}
                   </div>
                 ) : (
-                  <p>{message.content}</p>
+                  <p style={{ whiteSpace: "pre-line" }}>{message.content}</p>
                 )}
               </div>
             ))}
