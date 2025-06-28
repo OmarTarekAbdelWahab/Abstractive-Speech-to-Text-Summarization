@@ -26,16 +26,24 @@ function ChatInterface({ messages, setMessages, audioId }: ChatInterfaceProps) {
   const [loading, setLoading] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState<number | null>(null);
 
-  const handleSendEditMessage = async (messageContent: string, messageTimestamp: number) => {
+  const handleSendEditMessage = async (
+    messageContent: string,
+    messageTimestamp: number
+  ) => {
     const prompt = textPrompt.trim();
     if (!prompt) return;
     setTextPrompt("");
     setEditingMessageId(messageTimestamp);
     try {
-      const newContent = await messagingService.promptEditMessage(messageContent, prompt);
+      const newContent = await messagingService.promptEditMessage(
+        messageContent,
+        prompt
+      );
       setMessages((prevMessages) =>
         prevMessages.map((msg) =>
-          msg.timestamp === messageTimestamp ? { ...msg, content: newContent } : msg
+          msg.timestamp === messageTimestamp
+            ? { ...msg, content: newContent }
+            : msg
         )
       );
     } finally {
@@ -102,6 +110,7 @@ function ChatInterface({ messages, setMessages, audioId }: ChatInterfaceProps) {
                 {message.sender === "bot" ? (
                   <div className="flex flex-col space-y-2">
                     <p
+                      style={{ whiteSpace: "pre-line" }}
                       contentEditable={message.isEditable}
                       className="border-b border-dashed border-primary-light pb-1"
                       suppressContentEditableWarning={true}
@@ -114,7 +123,10 @@ function ChatInterface({ messages, setMessages, audioId }: ChatInterfaceProps) {
                     <button
                       onClick={() => {
                         if (message.messageId !== null) {
-                          handleSaveMessage(message.messageId!, message.content);
+                          handleSaveMessage(
+                            message.messageId!,
+                            message.content
+                          );
                         }
                         setMessages((prevMessages) =>
                           prevMessages.map((msg) =>
@@ -142,11 +154,20 @@ function ChatInterface({ messages, setMessages, audioId }: ChatInterfaceProps) {
                           />
                           <ToolTip text="edit">
                             <button
-                              onClick={() => handleSendEditMessage(message.content, message.timestamp)}
+                              onClick={() =>
+                                handleSendEditMessage(
+                                  message.content,
+                                  message.timestamp
+                                )
+                              }
                               className="p-2 w-full flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-dark"
                               disabled={editingMessageId === message.timestamp}
                             >
-                              {editingMessageId === message.timestamp ? <TypingDots /> : <FaPaperPlane />}
+                              {editingMessageId === message.timestamp ? (
+                                <TypingDots />
+                              ) : (
+                                <FaPaperPlane />
+                              )}
                             </button>
                           </ToolTip>
                         </div>
@@ -154,7 +175,7 @@ function ChatInterface({ messages, setMessages, audioId }: ChatInterfaceProps) {
                     )}
                   </div>
                 ) : (
-                  <p>{message.content}</p>
+                  <p style={{ whiteSpace: "pre-line" }}>{message.content}</p>
                 )}
               </div>
             ))}
