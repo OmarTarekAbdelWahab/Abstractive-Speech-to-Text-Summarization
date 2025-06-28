@@ -10,16 +10,37 @@ interface ChatInterfaceProps {
   audioId: number;
 }
 
+function TypingDots() {
+  return (
+    <div className="flex gap-1">
+      <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce [animation-delay:0ms]" />
+      <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce [animation-delay:200ms]" />
+      <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce [animation-delay:400ms]" />
+    </div>
+  );
+}
+
 function ChatInterface({ messages, setMessages, audioId }: ChatInterfaceProps) {
   const [input, setInput] = useState("");
   const [textPrompt, setTextPrompt] = useState("");
-  // const [currentEditableContent, setCurrentEditableContent] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [editingMessageId, setEditingMessageId] = useState<number | null>(null);
 
-  const handleSendEditMessage = async (messageContent: string) => {
-    let prompt = textPrompt.trim();
-    if (!prompt) return "";
+  const handleSendEditMessage = async (messageContent: string, messageTimestamp: number) => {
+    const prompt = textPrompt.trim();
+    if (!prompt) return;
     setTextPrompt("");
-    return await messagingService.promptEditMessage(messageContent, prompt);
+    setEditingMessageId(messageTimestamp);
+    try {
+      const newContent = await messagingService.promptEditMessage(messageContent, prompt);
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          msg.timestamp === messageTimestamp ? { ...msg, content: newContent } : msg
+        )
+      );
+    } finally {
+      setEditingMessageId(null);
+    }
   };
 
   const handleSaveMessage = async (messageId: number, newContent: string) => {
@@ -34,30 +55,29 @@ function ChatInterface({ messages, setMessages, audioId }: ChatInterfaceProps) {
   };
 
   const handleSend = () => {
-    let content = input.trim();
-    if (!content) return;
+    const content = input.trim();
+    if (!content || loading) return;
 
     setInput("");
-
     const newMessage: Message = {
-      // id: Date.now(),
       content,
       timestamp: Date.now(),
       sender: "user",
-      audioId: audioId,
+      audioId,
       isEditable: false,
     };
     setMessages((prevMessages) => [...prevMessages, newMessage]);
+    setLoading(true);
 
     messagingService
       .sendMessage(audioId, content, newMessage.timestamp)
       .then((response) => {
         const botMessage: Message = response;
         setMessages((prevMessages) => [...prevMessages, botMessage]);
-      });
-
-    return;
+      })
+      .finally(() => setLoading(false));
   };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -86,7 +106,6 @@ function ChatInterface({ messages, setMessages, audioId }: ChatInterfaceProps) {
                       className="border-b border-dashed border-primary-light pb-1"
                       suppressContentEditableWarning={true}
                       onInput={(e) => {
-                        console.log(e.currentTarget.textContent);
                         message.content = e.currentTarget.textContent || "";
                       }}
                     >
@@ -95,10 +114,7 @@ function ChatInterface({ messages, setMessages, audioId }: ChatInterfaceProps) {
                     <button
                       onClick={() => {
                         if (message.messageId !== null) {
-                          handleSaveMessage(
-                            message.messageId!,
-                            message.content
-                          );
+                          handleSaveMessage(message.messageId!, message.content);
                         }
                         setMessages((prevMessages) =>
                           prevMessages.map((msg) =>
@@ -113,7 +129,7 @@ function ChatInterface({ messages, setMessages, audioId }: ChatInterfaceProps) {
                     >
                       {message.isEditable ? "Save" : "Edit"}
                     </button>
-                    {message.isEditable ? (
+                    {message.isEditable && (
                       <div className="p-4 border-t border-primary-light bg-primary-light">
                         <div className="flex items-center space-x-2">
                           <textarea
@@ -124,33 +140,17 @@ function ChatInterface({ messages, setMessages, audioId }: ChatInterfaceProps) {
                             placeholder="Prompt to edit the text..."
                             rows={1}
                           />
-
-                          <div className="">
-                            <ToolTip text="edit">
-                              <button
-                                onClick={async () => {
-                                  var newContent = await handleSendEditMessage(
-                                    message.content
-                                  );
-                                  setMessages((prevMessages) =>
-                                    prevMessages.map((msg) =>
-                                      msg.timestamp === message.timestamp
-                                        ? { ...msg, content: newContent }
-                                        : msg
-                                    )
-                                  );
-                                  setTextPrompt("");
-                                }}
-                                className="p-2 w-full flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-dark"
-                              >
-                                <FaPaperPlane />
-                              </button>
-                            </ToolTip>
-                          </div>
+                          <ToolTip text="edit">
+                            <button
+                              onClick={() => handleSendEditMessage(message.content, message.timestamp)}
+                              className="p-2 w-full flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-dark"
+                              disabled={editingMessageId === message.timestamp}
+                            >
+                              {editingMessageId === message.timestamp ? <TypingDots /> : <FaPaperPlane />}
+                            </button>
+                          </ToolTip>
                         </div>
                       </div>
-                    ) : (
-                      <></>
                     )}
                   </div>
                 ) : (
@@ -158,6 +158,11 @@ function ChatInterface({ messages, setMessages, audioId }: ChatInterfaceProps) {
                 )}
               </div>
             ))}
+            {loading && (
+              <div className="self-start bg-primary-light p-3 rounded-xl shadow max-w-[75%]">
+                <TypingDots />
+              </div>
+            )}
           </>
         ) : (
           <div className="flex flex-1 items-center justify-center">
@@ -167,19 +172,6 @@ function ChatInterface({ messages, setMessages, audioId }: ChatInterfaceProps) {
           </div>
         )}
       </div>
-      {/* Display audio if selected */}
-      {/* {audioURL && (
-        <div className="p-3 bg-background-dark flex items-center justify-between">
-          <audio controls src={audioURL || ""} />
-          <button
-            onClick={handleDeleteAudioFile}
-            className="px-3 py-1 bg-cancel text-white rounded hover:bg-red-600 ml-4"
-          >
-            Delete Audio
-          </button>
-        </div>
-      )} */}
-
       <div className="p-4 border-t border-primary-light bg-background">
         <div className="flex items-center space-x-2">
           <textarea
@@ -190,17 +182,19 @@ function ChatInterface({ messages, setMessages, audioId }: ChatInterfaceProps) {
             placeholder="Type a message..."
             rows={1}
           />
-
-          <div className="">
-            <ToolTip text="send">
-              <button
-                onClick={() => handleSend()}
-                className="p-2 w-full flex items-center justify-center rounded-full bg-primary text-white hover:bg-primary-dark"
-              >
-                <FaPaperPlane />
-              </button>
-            </ToolTip>
-          </div>
+          <ToolTip text="send">
+            <button
+              onClick={handleSend}
+              disabled={loading || input.trim() === ""}
+              className={`p-2 w-full flex items-center justify-center rounded-full text-white ${
+                loading || input.trim() === ""
+                  ? "bg-primary/50 cursor-not-allowed"
+                  : "bg-primary hover:bg-primary-dark"
+              }`}
+            >
+              <FaPaperPlane />
+            </button>
+          </ToolTip>
         </div>
       </div>
     </div>
